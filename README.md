@@ -40,8 +40,8 @@ Here is a very simple codec class to convert a WAV file to and from MP3:
 
 ### To Do List:
 
-- [ ] Create a nuget package
-- [ ] Add support for decoding via libmp3lame
-- [ ] Add [`IMp3FrameDecompressor`][1] implementation for pluggable MP3 decoding
+- ~~Create a nuget package~~
+- Add support for decoding via libmp3lame
+- Add [`IMp3FrameDecompressor`][1] implementation for pluggable MP3 decoding
 
 [1]: http://naudio.codeplex.com/SourceControl/latest#NAudio/FileFormats/Mp3/IMp3FrameDecompressor.cs
