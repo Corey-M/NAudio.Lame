@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
     <metadata>
         <id>NAudio.Lame</id>
         <version>1.0.1-Experimental</version>
         <authors>Corey Murtagh</authors>
         <owners>Corey Murtagh</owners>
-        <projectUrl>http://github.com/Corey-M/NAudio.Lame</projectUrl>
+        <projectUrl>https://github.com/Corey-M/NAudio.Lame/tree/Experimental</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Uses libmp3lame.dll from the Lame project to provide MP3 encoding support to NAudio.  Both 64-bit and 32-bit versions of libmp3lame.dll are provided, with the 64-bit installed used by default.  See the documentation on the project page for more information on how to switch between 32- and 64-bit versions.</description>
         <summary>Implements MP3 writing for NAudio using libmp3lame.</summary>

@@ -1,6 +1,6 @@
 #NAudio.Lame
 
-Wrapper for libmp3lame.dll to add MP3 encoding support to NAudio.
+Wrapper for `libmp3lame.dll` to add MP3 encoding support to NAudio.
 
 ### Experimental Branch
 
@@ -10,11 +10,9 @@ This is necessary for applications compiled with the `AnyCPU` platform target as
 
 In order to achieve correct handling of both environments without silly duplication of code, I have split the DLL interface into a new project which is compiled against both x86 and x64 CPU targets.  The resultant assemblies (DLL files) are then added as resources to the `NAudio.Lame` assembly and loaded on demand.
 
-Included are the 32-bit and 64-bit versions of libmp3lame.dll, renamed to allow both to be included without naming conflict, and to make it obvious which is which.
-
 ### Usage
 
-I've included both versions of libmp3lame.dll.  Copy either `libmp3lame.dll.32bit` or `libmp3lame.dll.64bit` to your application and remove the bit-width suffix.
+I've included both 32-bit and 64-bit versions of `libmp3lame.dll` (named `libmp3lame.32.dll` and `libmp3lame.64.dll` respectively), both of which will be copied to the output folder.  If you are compiling for a specific CPU target - `x86` or `x64` - then you can remove the unused one from your project.  If compiling for `AnyCPU` then leave them both in.
 
 The `LameMP3FileWriter` class implements a `Stream` that encodes data written to it, writing the encoded MP3 data to either a file or a stream you provide.
 

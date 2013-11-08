@@ -4,5 +4,5 @@ This project contains the actual wrapper used to interface to `libmp3lame.dll`. 
 
 ### Usage
 
-This project needs to be built for x86 and x64 targets and the two outputs included in `NAudio.Lame` with te Build Action `Embedded Resource`.  A Loader class in `NAudio.Lame` will use the path and filename to identify the version to load.
+This project needs to be built for x86 and x64 targets and the two outputs included in `NAudio.Lame` with the Build Action `Embedded Resource`.  A Loader class in `NAudio.Lame` will use the path and filename to identify the version to load.
 
