@@ -27,22 +27,25 @@
 //
 // Contents of the LibMp3Lame.NativeMethods class and associated enumerations 
 // are directly based on the lame.h v1.190, available at:
-//		http://lame.cvs.sourceforge.net/viewvc/lame/lame/include/lame.h?revision=1.190&content-type=text%2Fplain
+//                http://lame.cvs.sourceforge.net/viewvc/lame/lame/include/lame.h?revision=1.190&content-type=text%2Fplain
 //
 // Source lines and comments included where useful/possible.
 //
 #endregion
 using System;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-
-namespace NAudio.Lame
+using System.Runtime.InteropServices;
+namespace LameDLLWrap
 {
+//	using NAudio.Lame;
+
 	/// <summary>LAME encoding presets</summary>
-	public enum LAMEPreset : int
+	internal enum LAMEPreset : int
 	{
-		/*values from 8 to 320 should be reserved for abr bitrates*/
-		/*for abr I'd suggest to directly use the targeted bitrate as a value*/
+		//values from 8 to 320 should be reserved for abr bitrates
+		//for abr I'd suggest to directly use the targeted bitrate as a value
 
 		/// <summary>8-kbit ABR</summary>
 		ABR_8 = 8,
@@ -65,9 +68,9 @@ namespace NAudio.Lame
 		/// <summary>320-kbit ABR</summary>
 		ABR_320 = 320,
 
-		/*Vx to match Lame and VBR_xx to match FhG*/
+		//Vx to match Lame and VBR_xx to match FhG
 		/// <summary>VBR Quality 9</summary>
-		V9 = 410, 
+		V9 = 410,
 		/// <summary>FhG: VBR Q10</summary>
 		VBR_10 = 410,
 		/// <summary>VBR Quality 8</summary>
@@ -107,7 +110,7 @@ namespace NAudio.Lame
 		/// <summary>FhG: VBR Q100</summary>
 		VBR_100 = 500,
 
-		/*still there for compatibility*/
+		// still there for compatibility
 		/// <summary>R3Mix quality - </summary>
 		R3MIX = 1000,
 		/// <summary>Standard Quality</summary>
@@ -125,10 +128,14 @@ namespace NAudio.Lame
 		/// <summary>Fast Medium Quality</summary>
 		MEDIUM_FAST = 1007
 	}
-}
 
-namespace NAudio.Lame.DLL
-{
+		/// <summary>Delegate for receiving output messages</summary>
+	/// <param name="text">Text to output</param>
+	public delegate void ReportFunction(string text);
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl, SetLastError = true, CharSet = CharSet.Ansi)]
+	internal delegate void delReportFunction(string fmt, IntPtr args);
+
 	/// <summary>MPEG channel mode</summary>
 	public enum MPEGMode : uint
 	{
@@ -155,9 +162,7 @@ namespace NAudio.Lame.DLL
 		SSE = 3
 	}
 
-	/// <summary>
-	/// Variable BitRate Mode
-	/// </summary>
+	/// <summary>Variable BitRate Mode</summary>
 	public enum VBRMode : uint
 	{
 		/// <summary>No VBR (Constant Bitrate)</summary>
@@ -267,21 +272,21 @@ namespace NAudio.Lame.DLL
 
 		#region DLL version data
 		/// <summary>Lame Version</summary>
-		public static string LameVersion { get { return NativeMethods.get_lame_version(); } }
+		public string LameVersion { get { return NativeMethods.get_lame_version(); } }
 		/// <summary>Lame Short Version</summary>
-		public static string LameShortVersion { get { return NativeMethods.get_lame_short_version(); } }
+		public string LameShortVersion { get { return NativeMethods.get_lame_short_version(); } }
 		/// <summary>Lame Very Short Version</summary>
-		public static string LameVeryShortVersion { get { return NativeMethods.get_lame_very_short_version(); } }
+		public string LameVeryShortVersion { get { return NativeMethods.get_lame_very_short_version(); } }
 		/// <summary>Lame Psychoacoustic Version</summary>
-		public static string LamePsychoacousticVersion { get { return NativeMethods.get_psy_version(); } }
+		public string LamePsychoacousticVersion { get { return NativeMethods.get_psy_version(); } }
 		/// <summary>Lame URL</summary>
-		public static string LameURL { get { return NativeMethods.get_lame_url(); } }
+		public string LameURL { get { return NativeMethods.get_lame_url(); } }
 		/// <summary>Lame library bit width - 32 or 64 bit</summary>
-		public static string LameOSBitness { get { return NativeMethods.get_lame_os_bitness(); } }
+		public string LameOSBitness { get { return NativeMethods.get_lame_os_bitness(); } }
 
 		/// <summary>Get LAME version information</summary>
 		/// <returns>LAME version structure</returns>
-		public static LAMEVersion GetLameVersion()
+		public LAMEVersion GetLameVersion()
 		{
 			LAMEVersion ver = new LAMEVersion();
 			NativeMethods.get_lame_version_numerical(ver);
@@ -306,28 +311,28 @@ namespace NAudio.Lame.DLL
 
 		#region Input Stream Description
 		/// <summary>Number of samples (optional)</summary>
-		public UInt64 NumSamples 
-		{ 
-			get { return NativeMethods.lame_get_num_samples(context); } 
-			set { setter(NativeMethods.lame_set_num_samples, value); } 
+		public UInt64 NumSamples
+		{
+			get { return NativeMethods.lame_get_num_samples(context); }
+			set { setter(NativeMethods.lame_set_num_samples, value); }
 		}
 		/// <summary>Input sample rate</summary>
-		public int InputSampleRate 
-		{ 
-			get { return NativeMethods.lame_get_in_samplerate(context); } 
-			set { setter(NativeMethods.lame_set_in_samplerate, value); } 
+		public int InputSampleRate
+		{
+			get { return NativeMethods.lame_get_in_samplerate(context); }
+			set { setter(NativeMethods.lame_set_in_samplerate, value); }
 		}
 		/// <summary>Number of channels</summary>
-		public int NumChannels 
-		{ 
-			get { return NativeMethods.lame_get_num_channels(context); } 
-			set { setter(NativeMethods.lame_set_num_channels, value); } 
+		public int NumChannels
+		{
+			get { return NativeMethods.lame_get_num_channels(context); }
+			set { setter(NativeMethods.lame_set_num_channels, value); }
 		}
 		/// <summary>Global amplification factor</summary>
-		public float Scale 
-		{ 
-			get { return NativeMethods.lame_get_scale(context); } 
-			set { setter(NativeMethods.lame_set_scale, value); } 
+		public float Scale
+		{
+			get { return NativeMethods.lame_get_scale(context); }
+			set { setter(NativeMethods.lame_set_scale, value); }
 		}
 		/// <summary>Left channel amplification</summary>
 		public float ScaleLeft
@@ -417,22 +422,22 @@ namespace NAudio.Lame.DLL
 			set { setter(NativeMethods.lame_set_nogap_currentindex, value); }
 		}
 		/// <summary>Output bitrate</summary>
-		public int BitRate 
+		public int BitRate
 		{
 			get { return NativeMethods.lame_get_brate(context); }
-			set { setter(NativeMethods.lame_set_brate, value); } 
+			set { setter(NativeMethods.lame_set_brate, value); }
 		}
 		/// <summary>Output compression ratio</summary>
-		public float CompressionRatio 
+		public float CompressionRatio
 		{
 			get { return NativeMethods.lame_get_compression_ratio(context); }
-			set { setter(NativeMethods.lame_set_compression_ratio, value); } 
+			set { setter(NativeMethods.lame_set_compression_ratio, value); }
 		}
 
 		/// <summary>Set compression preset</summary>
-		public bool SetPreset(LAMEPreset preset)
+		public bool SetPreset(int preset)
 		{
-			int res = NativeMethods.lame_set_preset(context, preset);
+			int res = NativeMethods.lame_set_preset(context, (LAMEPreset) preset);
 			return res == 0;
 		}
 
@@ -446,34 +451,34 @@ namespace NAudio.Lame.DLL
 
 		#region Frame parameters
 		/// <summary>Set output Copyright flag</summary>
-		public bool Copyright 
+		public bool Copyright
 		{
-			get { return NativeMethods.lame_get_copyright(context); } 
-			set { setter(NativeMethods.lame_set_copyright, value); } 
+			get { return NativeMethods.lame_get_copyright(context); }
+			set { setter(NativeMethods.lame_set_copyright, value); }
 		}
 		/// <summary>Set output Original flag</summary>
-		public bool Original 
-		{ 
-			get { return NativeMethods.lame_get_original(context); } 
-			set { setter(NativeMethods.lame_set_original, value); } 
+		public bool Original
+		{
+			get { return NativeMethods.lame_get_original(context); }
+			set { setter(NativeMethods.lame_set_original, value); }
 		}
 		/// <summary>Set error protection.  Uses 2 bytes from each frame for CRC checksum</summary>
-		public bool ErrorProtection 
-		{ 
-			get { return NativeMethods.lame_get_error_protection(context); } 
-			set { setter(NativeMethods.lame_set_error_protection, value); } 
+		public bool ErrorProtection
+		{
+			get { return NativeMethods.lame_get_error_protection(context); }
+			set { setter(NativeMethods.lame_set_error_protection, value); }
 		}
 		/// <summary>MP3 'private extension' bit.  Meaningless.</summary>
-		public bool Extension 
-		{ 
-			get { return NativeMethods.lame_get_extension(context); } 
-			set { setter(NativeMethods.lame_set_extension, value); } 
+		public bool Extension
+		{
+			get { return NativeMethods.lame_get_extension(context); }
+			set { setter(NativeMethods.lame_set_extension, value); }
 		}
 		/// <summary>Enforce strict ISO compliance.</summary>
-		public bool StrictISO 
-		{ 
-			get { return NativeMethods.lame_get_strict_ISO(context); } 
-			set { setter(NativeMethods.lame_set_strict_ISO, value); } 
+		public bool StrictISO
+		{
+			get { return NativeMethods.lame_get_strict_ISO(context); }
+			set { setter(NativeMethods.lame_set_strict_ISO, value); }
 		}
 		#endregion
 
@@ -604,7 +609,13 @@ namespace NAudio.Lame.DLL
 
 		internal static class NativeMethods
 		{
-			const string libname = @"libmp3lame.dll";
+#if X64
+			const string libname = @"libmp3lame.64.dll";
+#else
+			const string libname = @"libmp3lame.32.dll";
+#endif
+
+			public static readonly string BoundDLL = libname;
 
 			// typedef void (*lame_report_function)(const char *format, va_list ap);
 
@@ -626,7 +637,7 @@ namespace NAudio.Lame.DLL
 			 * final call to free all remaining buffers
 			 */
 			// int  CDECL lame_close (lame_global_flags *);
-			[DllImport("libmp3lame.dll", CallingConvention = CallingConvention.Cdecl)]
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern int lame_close(IntPtr context);
 
 			#endregion
@@ -1619,9 +1630,6 @@ namespace NAudio.Lame.DLL
 			#endregion
 
 			#region Reporting callbacks
-			[UnmanagedFunctionPointer(CallingConvention.Cdecl, SetLastError = true, CharSet = CharSet.Ansi)]
-			internal delegate void delReportFunction(string fmt, IntPtr args);
-
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern int lame_set_errorf(IntPtr context, delReportFunction fn);
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
@@ -1662,10 +1670,6 @@ namespace NAudio.Lame.DLL
 		public void PrintInternals() { NativeMethods.lame_print_internals(context); }
 
 		#region Reporting function support
-
-		/// <summary>Delegate for receiving output messages</summary>
-		/// <param name="text">Text to output</param>
-		public delegate void ReportFunction(string text);
 
 		private ReportFunction rptError = null;
 		private ReportFunction rptDebug = null;

@@ -2,6 +2,15 @@
 
 Wrapper for libmp3lame.dll to add MP3 encoding support to NAudio.
 
+### Experimental Branch
+
+Working on a method to load either the 32-bit or 64-bit version of the DLL as required.
+
+This is necessary for applications compiled with the `AnyCPU` platform target as they may be run on either 32-bit or 64-bit operating systems.
+
+In order to achieve correct handling of both environments without silly duplication of code, I have split the DLL interface into a new project which is compiled against both x86 and x64 CPU targets.  The resultant assemblies (DLL files) are then added as resources to the `NAudio.Lame` assembly and loaded on demand.
+
+Included are the 32-bit and 64-bit versions of libmp3lame.dll, renamed to allow both to be included without naming conflict, and to make it obvious which is which.
 
 ### Usage
 
