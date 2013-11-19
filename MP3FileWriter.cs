@@ -31,7 +31,6 @@ using LameDLLWrap;
 
 namespace NAudio.Lame
 {
-
 	/// <summary>LAME encoding presets</summary>
 	public enum LAMEPreset : int
 	{
@@ -127,8 +126,14 @@ namespace NAudio.Lame
 	/// <summary>MP3 encoding class, uses libmp3lame DLL to encode.</summary>
 	public class LameMP3FileWriter : Stream
 	{
+		static LameMP3FileWriter()
+		{
+			Loader.Init();
+		}
+
+
 		// Ensure that the Loader is initialized correctly
-		static bool init_loader = Loader.Initialized;
+		//static bool init_loader = Loader.Initialized;
 
 		/// <summary>Union class for fast buffer conversion</summary>
 		/// <remarks>
@@ -233,8 +238,9 @@ namespace NAudio.Lame
 		public LameMP3FileWriter(Stream outStream, WaveFormat format, NAudio.Lame.LAMEPreset quality)
 			: base()
 		{
-			if (!Loader.Initialized)
-				Loader.Initialized = false;
+			Loader.Init();
+			//if (!Loader.Initialized)
+			//	Loader.Initialized = false;
 
 			// sanity check
 			if (outStream == null)
@@ -308,8 +314,9 @@ namespace NAudio.Lame
 		public LameMP3FileWriter(Stream outStream, WaveFormat format, int bitRate)
 			: base()
 		{
-			if (!Loader.Initialized)
-				Loader.Initialized = false;
+			Loader.Init();
+			//if (!Loader.Initialized)
+			//	Loader.Initialized = false;
 
 			// sanity check
 			if (outStream == null)

@@ -31,10 +31,13 @@ namespace NAudio.Lame
 {
 	internal static class Loader
 	{
-		public static bool Initialized = false;
+		internal static bool Initialized = false;
+		internal static string LoadedName;
 
 		private static Assembly LoadLameWrapper(object sender, ResolveEventArgs args)
 		{
+			//Console.WriteLine("LoadLameWrapper(): {0}", args.Name);
+
 			var asmName = new AssemblyName(args.Name).Name + ".dll";
 			var srcAssembly = typeof(LameMP3FileWriter).Assembly;
 
@@ -48,25 +51,43 @@ namespace NAudio.Lame
 				if (p1 < 0 || p2 < 0 || p1 >= p2)
 					continue;
 
+				LoadedName = nxt;
+				
 				// Load resource into byte array
 				using (var strm = srcAssembly.GetManifestResourceStream(nxt))
 				{
 					src = new byte[strm.Length];
 					strm.Read(src, 0, (int)strm.Length);
+					break;
 				}
 			}
 			if (src == null)
 				return null;
 
 			// Load assembly from byte array
-			return Assembly.Load(src, null, SecurityContextSource.CurrentAppDomain);
+			//Console.WriteLine("Loaded {0} bytes from resource", src.Length);
+			try
+			{
+				var res = Assembly.Load(src, null, SecurityContextSource.CurrentAppDomain);
+				return res;
+			}
+			catch (Exception e)
+			{
+				//Console.WriteLine("LoadLameWrapper: Failed to create assembly from buffer.");
+				//Console.WriteLine("Exception:");
+				//Console.WriteLine("{0}", e.Message);
+				throw;
+			}
 		}
 
-		static Loader()
+		public static void Init()
 		{
-			// Register assembly resolver
-			AppDomain.CurrentDomain.AssemblyResolve += LoadLameWrapper;
-			Initialized = true;
+			if (!Initialized)
+			{
+				// Register assembly resolver
+				AppDomain.CurrentDomain.AssemblyResolve += LoadLameWrapper;
+				Initialized = true;
+			}
 		}
 	}
 }
