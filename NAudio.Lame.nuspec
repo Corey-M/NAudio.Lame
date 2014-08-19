@@ -22,7 +22,7 @@ v1.0.1 Added platform detection to allow both 32-bit and 64-bit execution from o
     <files>
         <file src="libmp3lame.32.dll" target="content\libmp3lame.32.dll" />
         <file src="libmp3lame.64.dll" target="content\libmp3lame.64.dll" />
-        <file src="bin\Release\NAudio.Lame.dll" target="lib\net20\NAudio.Lame.dll" />
+        <file src="bin\Release\NAudio.Lame.dll" target="lib\net40\NAudio.Lame.dll" />
         <file src="Tools\install.ps1" target="tools\install.ps1" />
     </files>
 </package>
