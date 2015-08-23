@@ -2,6 +2,7 @@
 
 Wrapper for libmp3lame.dll to add MP3 encoding support to NAudio.
 
+NB: This is the static master branch.  Please see the Experimental branch for more recent developments.
 
 ### Usage
 
