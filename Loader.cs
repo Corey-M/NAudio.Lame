@@ -71,7 +71,7 @@ namespace NAudio.Lame
 				var res = Assembly.Load(src, null, SecurityContextSource.CurrentAppDomain);
 				return res;
 			}
-			catch (Exception e)
+			catch //(Exception e)
 			{
 				//Console.WriteLine("LoadLameWrapper: Failed to create assembly from buffer.");
 				//Console.WriteLine("Exception:");

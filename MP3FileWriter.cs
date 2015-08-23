@@ -28,6 +28,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using NAudio.Wave;
 using LameDLLWrap;
+using System.Collections.Generic;
 
 namespace NAudio.Lame
 {
@@ -225,8 +226,9 @@ namespace NAudio.Lame
 		/// <param name="outFileName">Name of file to create</param>
 		/// <param name="format">Input WaveFormat</param>
 		/// <param name="quality">LAME quality preset</param>
-		public LameMP3FileWriter(string outFileName, WaveFormat format, NAudio.Lame.LAMEPreset quality)
-			: this(File.Create(outFileName), format, quality)
+		/// <param name="id3">Optional ID3 data block</param>
+		public LameMP3FileWriter(string outFileName, WaveFormat format, NAudio.Lame.LAMEPreset quality, ID3TagData id3 = null)
+			: this(File.Create(outFileName), format, quality, id3)
 		{
 			this.disposeOutput = true;
 		}
@@ -235,7 +237,8 @@ namespace NAudio.Lame
 		/// <param name="outStream">Stream to write encoded data to</param>
 		/// <param name="format">Input WaveFormat</param>
 		/// <param name="quality">LAME quality preset</param>
-		public LameMP3FileWriter(Stream outStream, WaveFormat format, NAudio.Lame.LAMEPreset quality)
+		/// <param name="id3">Optional ID3 data block</param>
+		public LameMP3FileWriter(Stream outStream, WaveFormat format, NAudio.Lame.LAMEPreset quality, ID3TagData id3 = null)
 			: base()
 		{
 			Loader.Init();
@@ -293,6 +296,9 @@ namespace NAudio.Lame
 
 			this._lame.SetPreset((int)quality);
 
+			if (id3 != null)
+				ApplyID3Tag(id3);
+
 			this._lame.InitParams();
 		}
 
@@ -301,8 +307,9 @@ namespace NAudio.Lame
 		/// <param name="outFileName">Name of file to create</param>
 		/// <param name="format">Input WaveFormat</param>
 		/// <param name="bitRate">Output bit rate in kbps</param>
-		public LameMP3FileWriter(string outFileName, WaveFormat format, int bitRate)
-			: this(File.Create(outFileName), format, bitRate)
+		/// <param name="id3">Optional ID3 data block</param>
+		public LameMP3FileWriter(string outFileName, WaveFormat format, int bitRate, ID3TagData id3 = null)
+			: this(File.Create(outFileName), format, bitRate, id3)
 		{
 			this.disposeOutput = true;
 		}
@@ -311,7 +318,8 @@ namespace NAudio.Lame
 		/// <param name="outStream">Stream to write encoded data to</param>
 		/// <param name="format">Input WaveFormat</param>
 		/// <param name="bitRate">Output bit rate in kbps</param>
-		public LameMP3FileWriter(Stream outStream, WaveFormat format, int bitRate)
+		/// <param name="id3">Optional ID3 data block</param>
+		public LameMP3FileWriter(Stream outStream, WaveFormat format, int bitRate, ID3TagData id3 = null)
 			: base()
 		{
 			Loader.Init();
@@ -368,6 +376,9 @@ namespace NAudio.Lame
 			this._lame.NumChannels = format.Channels;
 
 			this._lame.BitRate = bitRate;
+
+			if (id3 != null)
+				ApplyID3Tag(id3);
 
 			this._lame.InitParams();
 		}
@@ -550,6 +561,47 @@ namespace NAudio.Lame
 		public override long Seek(long offset, SeekOrigin origin)
 		{
 			throw new NotImplementedException();
+		}
+		#endregion
+
+		#region ID3 support
+		private void ApplyID3Tag(ID3TagData tag)
+		{
+			if (tag == null)
+				return;
+
+			if (!string.IsNullOrEmpty(tag.Title))
+				_lame.ID3SetTitle(tag.Title);
+			if (!string.IsNullOrEmpty(tag.Artist))
+				_lame.ID3SetArtist(tag.Artist);
+			if (!string.IsNullOrEmpty(tag.Album))
+				_lame.ID3SetAlbum(tag.Album);
+			if (!string.IsNullOrEmpty(tag.Year))
+				_lame.ID3SetYear(tag.Year);
+			if (!string.IsNullOrEmpty(tag.Comment))
+				_lame.ID3SetComment(tag.Comment);
+			if (!string.IsNullOrEmpty(tag.Genre))
+				_lame.ID3SetGenre(tag.Genre);
+			if (!string.IsNullOrEmpty(tag.Track))
+				_lame.ID3SetTrack(tag.Track);
+
+			if (!string.IsNullOrEmpty(tag.Subtitle))
+				_lame.ID3SetFieldValue(string.Format("TIT3={0}", tag.Subtitle));
+
+			if (tag.AlbumArt != null && tag.AlbumArt.Length > 0 && tag.AlbumArt.Length < 131072)
+				_lame.ID3SetAlbumArt(tag.AlbumArt);
+		}
+
+		private static Dictionary<int, string> _genres;
+		/// <summary>Dictionary of Genres supported by LAME's ID3 tag support</summary>
+		public static Dictionary<int, string> Genres
+		{
+			get
+			{
+				if (_genres == null)
+					_genres = LibMp3Lame.ID3GenreList();
+				return _genres;
+			}
 		}
 		#endregion
 	}

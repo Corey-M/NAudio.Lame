@@ -39,18 +39,18 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NAudio">
-      <HintPath>..\packages\NAudio.1.7\lib\net35\NAudio.dll</HintPath>
+      <HintPath>packages\NAudio.1.7.3\lib\net35\NAudio.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ID3TagData.cs" />
     <Compile Include="Loader.cs" />
     <Compile Include="MP3FileWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="LameDLLWrap\LameDLLWrap.csproj">
       <Project>{F6F99810-86D6-4E4C-AD65-10C0F0DED1CE}</Project>
@@ -61,6 +61,9 @@
   <ItemGroup>
     <EmbeddedResource Include="LameDLLWrap\bin\x64\Release\LameDLLWrap.dll" />
     <EmbeddedResource Include="LameDLLWrap\bin\x86\Release\LameDLLWrap.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

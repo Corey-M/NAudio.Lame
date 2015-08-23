@@ -4,11 +4,9 @@ Wrapper for `libmp3lame.dll` to add MP3 encoding support to NAudio.
 
 ### Experimental Branch
 
-Working on a method to load either the 32-bit or 64-bit version of the DLL as required.
+In order to achieve correct handling of both 32- and 64-bit environments - both as specific targets and when compiled with the `AnyCPU` platfom target - without silly duplication of code.  I have split the DLL interface into a new project which is compiled against both x86 and x64 CPU targets.  The resultant assemblies (DLL files) are then added as resources to the `NAudio.Lame` assembly and loaded on demand.
 
-This is necessary for applications compiled with the `AnyCPU` platform target as they may be run on either 32-bit or 64-bit operating systems.
-
-In order to achieve correct handling of both environments without silly duplication of code, I have split the DLL interface into a new project which is compiled against both x86 and x64 CPU targets.  The resultant assemblies (DLL files) are then added as resources to the `NAudio.Lame` assembly and loaded on demand.
+Also extended to support the ID3 methods that are compiled into the lame DLLs.  A new `ID3TagData` class is used to initialize the tag with relevant information.
 
 ### Usage
 
@@ -30,7 +28,7 @@ Here is a very simple codec class to convert a WAV file to and from MP3:
 		// Convert WAV to MP3 using libmp3lame library
 		public static void WaveToMP3(string waveFileName, string mp3FileName, int bitRate = 128)
 		{
-			using (var reader = new WaveFileReader(waveFileName))
+			using (var reader = new AudioFileReader(waveFileName))
 			using (var writer = new LameMP3FileWriter(mp3FileName, reader.WaveFormat, bitRate))
 				reader.CopyTo(writer);
 		}
@@ -44,6 +42,44 @@ Here is a very simple codec class to convert a WAV file to and from MP3:
 		}
 	}
 
+
+### ID3 tag support
+
+The LameMP3FileWriter class now accepts an ID3TagData parameter, allowing you to supply some information 
+that will be set as the ID3 tag on the MP3 file.
+
+The `ID3TagData` class is pretty simple right now, with only basic information support.  There are a lot of other bits of information that can potentially be stored in the ID3 tag, with all sorts of interesting ways of encoding the data.  I'll have to play with it some more.
+
+And yes, you *can* add a cover image, in JPG, PNG or GIF format.  It should support up to 128K file size, but seems to have issues with files that size.  The test program shows an example of a smaller file that does work.
+
+#### Usage
+
+	using NAudio.Wave;
+	using NAudio.Lame;
+	using System;
+	
+	class Program
+	{
+		static void Main(string[] args)
+		{
+			ID3TagData tag = new ID3TagData 
+			{
+ 				Title = "A Test File",
+				Artist = "Microsoft",
+				Album = "Windows 7",
+				Year = "2009",
+				Comment = "Test only.",
+				Genre = LameMP3FileWriter.Genres[1],
+				Subtitle = "From the Calligraphy theme"
+			};
+
+			using (var reader = new AudioFileReader(@"test.wav"))
+			using (var writer = new LameMP3FileWriter(@"test.mp3", reader.WaveFormat, 128, tag))
+			{
+				reader.CopyTo(writer);
+			}
+		}
+	}
 
 ### To Do List:
 

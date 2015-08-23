@@ -129,12 +129,21 @@ namespace LameDLLWrap
 		MEDIUM_FAST = 1007
 	}
 
-		/// <summary>Delegate for receiving output messages</summary>
+	/// <summary>Delegate for receiving output messages</summary>
 	/// <param name="text">Text to output</param>
 	public delegate void ReportFunction(string text);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl, SetLastError = true, CharSet = CharSet.Ansi)]
 	internal delegate void delReportFunction(string fmt, IntPtr args);
+
+	public delegate void GenreCallback(int index, string genre);
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl, SetLastError = true, CharSet = CharSet.Ansi)]
+	internal delegate void delGenreCallback(
+		int index, 
+		string genre,
+		IntPtr cookie
+	);
 
 	/// <summary>MPEG channel mode</summary>
 	public enum MPEGMode : uint
@@ -232,6 +241,42 @@ namespace LameDLLWrap
 			}
 		}
 	}
+
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct mp3data
+    {
+        /// <summary>1 if header was parsed and following data was computed</summary>
+        [MarshalAs(UnmanagedType.Bool)]
+        public bool header_parsed;
+        /// <summary>number of channels</summary>
+        public int stereo;
+        /// <summary>sample rate</summary>
+        public int samplerate;
+        /// <summary>bitrate</summary>
+        public int bitrate;
+        /// <summary>mp3 frame type</summary>
+        public int mode;
+        /// <summary>mp3 frame type</summary>
+        public int mode_ext;
+        /// <summary>number of samples per MP3 frame</summary>
+        public int framesize;
+
+        // This data is only computed if mpglib detects a Xing VBR header
+
+        /// <summary>number of samples in MP3 file</summary>
+        public ulong nsamp;
+        /// <summary>total number of frames in MP3 file</summary>
+        public int totalframes;
+
+        // This data is not currently computed by mpglib
+
+        /// <summary>frames decoded counter</summary>
+        public int framenum;
+    }
+
+
+
 
 	/// <summary>LAME interface class</summary>
 	public class LibMp3Lame : IDisposable
@@ -1644,47 +1689,107 @@ namespace LameDLLWrap
 
 
 			#endregion
+            
+			#region 'printf' support for reporting functions
+			[DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, ThrowOnUnmappableChar = true, BestFitMapping = false)]
+			internal static extern int _vsnprintf_s(
+				[In, Out, MarshalAs(UnmanagedType.LPStr)] StringBuilder str,
+				int sizeOfBuffer,
+				int count,
+				[In, MarshalAs(UnmanagedType.LPStr)] String format,
+				[In] IntPtr va_args);
 
-			#region ID3 tags
-			/* version  0=MPEG-2  1=MPEG-1  (2=MPEG-2.5)     */
-			// int CDECL lame_get_version(const lame_global_flags *);
-			//[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			//internal static extern MPEGVersion lame_get_version(IntPtr context);
-			[UnmanagedFunctionPointer(CallingConvention.Cdecl, SetLastError = true, CharSet = CharSet.Ansi)]
-			internal delegate void id3GenreCallback(int i, string genre, IntPtr cookie);
+			internal static string printf(string format, IntPtr va_args)
+			{
+				StringBuilder sb = new StringBuilder(4096);
+				int res = NativeMethods._vsnprintf_s(sb, sb.Capacity, sb.Capacity - 2, format.Replace("\t", "\xFF"), va_args);
+				return sb.ToString().Replace("\xFF", "\t");
+			}
+			#endregion
 
+
+            #region Decoding
+            /// <summary>required call to initialize decoder</summary>
+            /// <returns>Decoder context handle</returns>
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern IntPtr hip_decode_init();
+
+            /// <summary>cleanup call to exit decoder</summary>
+            /// <param name="decContext">Decoder context</param>
+            /// <returns></returns>
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int hip_decode_exit(IntPtr decContext);
+
+            /// <summary>Hip reporting function: error</summary>
+            /// <param name="decContext">Decoder context</param>
+            /// <param name="f">Reporting function</param>
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern void hip_set_errorf(IntPtr decContext, delReportFunction f);
+
+            /// <summary>Hip reporting function: debug</summary>
+            /// <param name="decContext">Decoder context</param>
+            /// <param name="f">Reporting function</param>
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern void hip_set_debugf(IntPtr decContext, delReportFunction f);
+
+            /// <summary>Hip reporting function: message</summary>
+            /// <param name="decContext">Decoder context</param>
+            /// <param name="f">Reporting function</param>
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern void hip_set_msgf(IntPtr decContext, delReportFunction f);
+
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int hip_decode(IntPtr decContext, [In] byte[] mp3buf, int len, [In, Out] short[] pcm_l, [In, Out] short[] pcm_r);
+
+            // Same as hip_decode, and also returns mp3 header data
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int hip_decode_headers(IntPtr decContext, [In] byte[] mp3buf, int len, [In, Out] short[] pcm_l, [In, Out] short[] pcm_r, [Out] mp3data mp3data);
+
+            // Same as hip_decode, but returns at most 1 frame
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int hip_decode1(IntPtr decContext, [In] byte[] mp3buf, int len, [In, Out] short[] pcm_l, [In, Out] short[] pcm_r);
+
+            // Same as hip_decode1, but returns at most 1 frame and mp3 header data
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int hip_decode1_headers(IntPtr decContext, [In] byte[] mp3buf, int len, [In, Out] short[] pcm_l, [In, Out] short[] pcm_r, [Out] mp3data mp3data);
+
+            // Same as hip_decode1_headers but also returns enc_delay and enc_padding 
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int hip_decode(IntPtr decContext, [In] byte[] mp3buf, int len, [In, Out] short[] pcm_l, [In, Out] short[] pcm_r, [Out] mp3data mp3data, out int enc_delay, out int enc_padding);
+
+            #endregion
+
+			#region ID3 tag support
+			// utility to obtain alphabetically sorted list of genre names with numbers
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern void id3tag_genre_list(
-					id3GenreCallback handler, IntPtr cookie
-				);
+			internal static extern void id3tag_genre_list(delGenreCallback handler, IntPtr cookie);
 
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern void id3tag_init(IntPtr context);
 
+			// force addition of ID3v2 tag
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern void id3tag_add_v2(IntPtr context);
 
+			// add only a v1 tag
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern void id3tag_v1_only(IntPtr context);
 
+			// add only a v2 tag
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern void id3tag_v2_only(IntPtr context);
 
-			/// <summary>pad version 1 tag with spaces instead of nulls</summary>
-			/// <param name="context"></param>
+			// pad version 1 tag with spaces instead of nulls
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern void id3tag_space_v1(IntPtr context);
 
-			/// <summary>Pad version 2 tag with extra 128 bytes</summary>
-			/// <param name="context"></param>
+			// pad version 2 tag with extra 128 bytes
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern void id3tag_pd_v2(IntPtr context);
+			internal static extern void id3tag_pad_v2(IntPtr context);
 
-			/// <summary>pad version 2 tag with extra n bytes</summary>
-			/// <param name="context"></param>
-			/// <param name="n"></param>
+			// pad version 2 tag with extra n bytes
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern void id3tag_set_pad(IntPtr context, UIntPtr n);
+			internal static extern void id3tag_set_pad(IntPtr context, int n);
 
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern void id3tag_set_title(IntPtr context, string title);
@@ -1701,142 +1806,57 @@ namespace LameDLLWrap
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern void id3tag_set_comment(IntPtr context, string comment);
 
-			/// <summary>Return -1 result if track number is out of ID3v1 range</summary>
-			/// <param name="context"></param>
-			/// <param name="track"></param>
-			/// <returns></returns>
+			// return -1 result if track number is out of ID3v1 range and ignored for ID3v1
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern int id3tag_set_track(IntPtr context, string track);
+			[return: MarshalAs(UnmanagedType.Bool)]
+			internal static extern bool id3tag_set_track(IntPtr context, string track);
 
-			/// <summary>Return non-zero result if genre name or number is invalid</summary>
-			/// <param name="context"></param>
-			/// <param name="genre"></param>
-			/// <returns>0 = OK, -1 = genre number out of range, -2 = no valid ID3v1 genre name</returns>
+			// return non-zero result if genre name or number is invalid
+			// result 0: OK
+			// result -1: genre number out of range
+			// result -2: no valid ID3v1 genre name, mapped to ID3v1 'Other'
+			//            but taken as-is for ID3v2 genre tag
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern int id3tag_set_genre(IntPtr context, string genre);
 
+			// return non-zero result if field name is invalid
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern int id3tag_set_fieldvalue(IntPtr context, string fieldvalue);
+			[return: MarshalAs(UnmanagedType.Bool)]
+			internal static extern bool id3tag_set_fieldvalue(IntPtr context, string value);
+
+			// return non-zero result if image type is invalid
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			[return: MarshalAs(UnmanagedType.Bool)]
+			internal static extern bool id3tag_set_albumart(IntPtr context, [In]byte[] image, int size);
+
+			// lame_get_id3v1_tag copies ID3v1 tag into buffer.
+			// Function returns number of bytes copied into buffer, or number
+			// of bytes required if 'size' is too small.
+			// Function fails, if returned value is larger than 'size'
+			// NOTE:
+			// This function does nothing, if user/LAME disabled ID3v1 tag
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern int id3tag_get_id3v1_tag(IntPtr context, [In, Out]byte[] buffer, int size);
+
+			// lame_get_id3v2_tag copies ID3v2 tag into buffer.
+			// Function returns number of bytes copied into buffer, or number
+			// of bytes required if 'size' is too small.
+			// Function fails, if returned value is larger than 'size'
+			// NOTE:
+			// This function does nothing, if user/LAME disabled ID3v2 tag
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern int id3tag_get_id3v2_tag(IntPtr context, [In, Out]byte[] buffer, int size);
+
+			// normally lame_init_param writes ID3v2 tags into the audio stream
+			// Call lame_set_write_id3tag_automatic(gfp, 0) before lame_init_param 
+			// to turn off this behaviour and get ID3v2 tag with above function 
+			// write it yourself into your file.
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_set_write_id3tag_automatic(IntPtr context, bool value);
 
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern UIntPtr id3tag_get_id3v1_tag(IntPtr context, byte[] buffer, UIntPtr size);
-
-			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern void id3tag_(;
-
-			
-
-#if false // Copied from lame.h:
-/* utility to obtain alphabetically sorted list of genre names with numbers */
-void CDECL id3tag_genre_list(
-        void (*handler)(int, const char *, void *),
-        void*  cookie);
-
-void CDECL id3tag_init     (lame_t gfp);
-
-/* force addition of version 2 tag */
-void CDECL id3tag_add_v2   (lame_t gfp);
-
-/* add only a version 1 tag */
-void CDECL id3tag_v1_only  (lame_t gfp);
-
-/* add only a version 2 tag */
-void CDECL id3tag_v2_only  (lame_t gfp);
-
-/* pad version 1 tag with spaces instead of nulls */
-void CDECL id3tag_space_v1 (lame_t gfp);
-
-/* pad version 2 tag with extra 128 bytes */
-void CDECL id3tag_pad_v2   (lame_t gfp);
-
-/* pad version 2 tag with extra n bytes */
-void CDECL id3tag_set_pad  (lame_t gfp, size_t n);
-
-void CDECL id3tag_set_title(lame_t gfp, const char* title);
-void CDECL id3tag_set_artist(lame_t gfp, const char* artist);
-void CDECL id3tag_set_album(lame_t gfp, const char* album);
-void CDECL id3tag_set_year(lame_t gfp, const char* year);
-void CDECL id3tag_set_comment(lame_t gfp, const char* comment);
-            
-/* return -1 result if track number is out of ID3v1 range
-                    and ignored for ID3v1 */
-int CDECL id3tag_set_track(lame_t gfp, const char* track);
-
-/* return non-zero result if genre name or number is invalid
-  result 0: OK
-  result -1: genre number out of range
-  result -2: no valid ID3v1 genre name, mapped to ID3v1 'Other'
-             but taken as-is for ID3v2 genre tag */
-int CDECL id3tag_set_genre(lame_t gfp, const char* genre);
-
-/* return non-zero result if field name is invalid */
-int CDECL id3tag_set_fieldvalue(lame_t gfp, const char* fieldvalue);
-
-/* return non-zero result if image type is invalid */
-int CDECL id3tag_set_albumart(lame_t gfp, const char* image, size_t size);
-
-/* lame_get_id3v1_tag copies ID3v1 tag into buffer.
- * Function returns number of bytes copied into buffer, or number
- * of bytes rquired if buffer 'size' is too small.
- * Function fails, if returned value is larger than 'size'.
- * NOTE:
- * This functions does nothing, if user/LAME disabled ID3v1 tag.
- */
-size_t CDECL lame_get_id3v1_tag(lame_t gfp, unsigned char* buffer, size_t size);
-
-/* lame_get_id3v2_tag copies ID3v2 tag into buffer.
- * Function returns number of bytes copied into buffer, or number
- * of bytes rquired if buffer 'size' is too small.
- * Function fails, if returned value is larger than 'size'.
- * NOTE:
- * This functions does nothing, if user/LAME disabled ID3v2 tag.
- */
-size_t CDECL lame_get_id3v2_tag(lame_t gfp, unsigned char* buffer, size_t size);
-
-/* normaly lame_init_param writes ID3v2 tags into the audio stream
- * Call lame_set_write_id3tag_automatic(gfp, 0) before lame_init_param
- * to turn off this behaviour and get ID3v2 tag with above function
- * write it yourself into your file.
- */
-void CDECL lame_set_write_id3tag_automatic(lame_global_flags * gfp, int);
-int CDECL lame_get_write_id3tag_automatic(lame_global_flags const* gfp);
-
-/* experimental */
-int CDECL id3tag_set_textinfo_latin1(lame_t gfp, char const *id, char const *text);
-
-/* experimental */
-int CDECL id3tag_set_comment_latin1(lame_t gfp, char const *lang, char const *desc, char const *text);
-
-/* experimental */
-int CDECL id3tag_set_fieldvalue_utf16(lame_t gfp, const unsigned short *fieldvalue);
-
-/* experimental */
-int CDECL id3tag_set_textinfo_utf16(lame_t gfp, char const *id, unsigned short const *text);
-
-/* experimental */
-int CDECL id3tag_set_comment_utf16(lame_t gfp, char const *lang, unsigned short const *desc, unsigned short const *text);
-#endif
-
-
-
-
-			#endregion
-
-			#region 'printf' support for reporting functions
-			[DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, ThrowOnUnmappableChar = true, BestFitMapping = false)]
-			internal static extern int _vsnprintf_s(
-				[In, Out, MarshalAs(UnmanagedType.LPStr)] StringBuilder str,
-				int sizeOfBuffer,
-				int count,
-				[In, MarshalAs(UnmanagedType.LPStr)] String format,
-				[In] IntPtr va_args);
-
-			internal static string printf(string format, IntPtr va_args)
-			{
-				StringBuilder sb = new StringBuilder(4096);
-				int res = NativeMethods._vsnprintf_s(sb, sb.Capacity, sb.Capacity - 2, format.Replace("\t", "\xFF"), va_args);
-				return sb.ToString().Replace("\xFF", "\t");
-			}
+			[return: MarshalAs(UnmanagedType.Bool)]
+			internal static extern bool id3tag_get_write_id3tag_automatic(IntPtr context);
 			#endregion
 		}
 
@@ -1898,6 +1918,176 @@ int CDECL id3tag_set_comment_utf16(lame_t gfp, char const *lang, unsigned short 
 		public void SetMsgFunc(ReportFunction fn)
 		{
 			rptMsg = fn;
+		}
+		#endregion
+
+		#region ID3 tag support
+		private static GenreCallback id3GenreCallback = null;
+		
+		private static void ID3Genre_proxy(int index, string genre, IntPtr cookie)
+		{
+			if (id3GenreCallback != null)
+				id3GenreCallback(index, genre);
+		}
+
+#if false // disabled for now, call ID3GenreList method instead
+		public void SetID3GenreCallback(GenreCallback fn)
+		{
+			id3GenreCallback = fn;
+		}
+#endif
+		/// <summary>Utility to obtain a list of genre names with numbers</summary>
+		/// <returns>Dictionary containing genres</returns>
+		public static Dictionary<int, string> ID3GenreList()
+		{
+			Dictionary<int, string> res = new Dictionary<int, string>();
+			GenreCallback cbsave = id3GenreCallback;
+			id3GenreCallback = (idx, gen) => res[idx] = gen;
+
+			NativeMethods.id3tag_genre_list(ID3Genre_proxy, IntPtr.Zero);
+			id3GenreCallback = null;
+			id3GenreCallback = cbsave;
+			return res;
+		}
+
+		/// <summary>Initialize ID3 tag on context, clearing any existing ID3 information</summary>
+		public void ID3Init()
+		{
+			NativeMethods.id3tag_init(context);
+		}
+
+		/// <summary>force addition of ID3v2 tag</summary>
+		public void ID3AddV2()
+		{
+			NativeMethods.id3tag_add_v2(context);
+		}
+
+		/// <summary>add only a version 1 tag</summary>
+		public void ID3V1Only()
+		{
+			NativeMethods.id3tag_v1_only(context);
+		}
+
+		/// <summary>add only a version 2 tag</summary>
+		public void ID3V2Only()
+		{
+			NativeMethods.id3tag_v2_only(context);
+		}
+
+		/// <summary>pad version 1 tag with spaces instead of nulls</summary>
+		public void ID3SpaceV1()
+		{
+			NativeMethods.id3tag_space_v1(context);
+		}
+
+		/// <summary>pad version 2 tag with extra 128 bytes</summary>
+		public void ID3PadV2()
+		{
+			NativeMethods.id3tag_pad_v2(context);
+		}
+
+		/// <summary>pad version 2 tag with extra <paramref name="nBytes"/> bytes</summary>
+		/// <param name="nBytes">Number of bytes to pad</param>
+		public void ID3SetPad(int nBytes)
+		{
+			NativeMethods.id3tag_set_pad(context, nBytes);
+		}
+
+		/// <summary>Set ID3 title</summary>
+		/// <param name="title">Value to set</param>
+		public void ID3SetTitle(string title)
+		{
+			NativeMethods.id3tag_set_title(context, title);
+		}
+
+		public void ID3SetArtist(string artist)
+		{
+			NativeMethods.id3tag_set_artist(context, artist);
+		}
+
+		public void ID3SetAlbum(string album)
+		{
+			NativeMethods.id3tag_set_album(context, album);
+		}
+
+		/// <summary>Set year</summary>
+		/// <param name="year">Year value to set, as string</param>
+		public void ID3SetYear(string year)
+		{
+			NativeMethods.id3tag_set_year(context, year);
+		}
+
+		/// <summary>Set year</summary>
+		/// <param name="year">Year value to set, as integer</param>
+		public void ID3SetYear(int year)
+		{
+			NativeMethods.id3tag_set_year(context, year.ToString());
+		}
+
+		public void ID3SetComment(string comment)
+		{
+			NativeMethods.id3tag_set_comment(context, comment);
+		}
+
+		public bool ID3SetTrack(string track)
+		{
+			return !NativeMethods.id3tag_set_track(context, track);
+		}
+
+		public int ID3SetGenre(string genre)
+		{
+			return NativeMethods.id3tag_set_genre(context, genre);
+		}
+
+		public int ID3SetGenre(int genreIndex)
+		{
+			return NativeMethods.id3tag_set_genre(context, genreIndex.ToString());
+		}
+
+		public bool ID3SetFieldValue(string value)
+		{
+			return !NativeMethods.id3tag_set_fieldvalue(context, value);
+		}
+
+		/// <summary>Set albumart of ID3 tag</summary>
+		/// <param name="image">raw image file data</param>
+		/// <returns>True if successful, else false</returns>
+		/// <remarks>Supported formats: JPG, PNG, GIF.
+		/// Max image size: 128KB</remarks>
+		public bool ID3SetAlbumArt(byte[] image)
+		{
+			bool res = NativeMethods.id3tag_set_albumart(context, image, image.Length);
+			return !res;
+		}
+
+		public byte[] ID3GetID3v1Tag()
+		{
+			int len = NativeMethods.id3tag_get_id3v1_tag(context, new byte[] { }, 0);
+			if (len < 1)
+				return null;
+			byte[] res = new byte[len];
+			int rc = NativeMethods.id3tag_get_id3v1_tag(context, res, len);
+			if (rc != len)
+				return null;
+			return res;
+		}
+
+		public byte[] ID3GetID3v2Tag()
+		{
+			int len = NativeMethods.id3tag_get_id3v2_tag(context, new byte[] { }, 0);
+			if (len < 1)
+				return null;
+			byte[] res = new byte[len];
+			int rc = NativeMethods.id3tag_get_id3v2_tag(context, res, len);
+			if (rc != len)
+				return null;
+			return res;
+		}
+
+		public bool ID3WriteTagAutomatic
+		{
+			get { return NativeMethods.id3tag_get_write_id3tag_automatic(context); }
+			set { NativeMethods.id3tag_set_write_id3tag_automatic(context, value); }
 		}
 		#endregion
 	}
