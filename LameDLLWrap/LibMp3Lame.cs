@@ -317,21 +317,21 @@ namespace LameDLLWrap
 
 		#region DLL version data
 		/// <summary>Lame Version</summary>
-		public string LameVersion { get { return NativeMethods.get_lame_version(); } }
+		public static string LameVersion { get { return NativeMethods.get_lame_version(); } }
 		/// <summary>Lame Short Version</summary>
-		public string LameShortVersion { get { return NativeMethods.get_lame_short_version(); } }
+		public static string LameShortVersion { get { return NativeMethods.get_lame_short_version(); } }
 		/// <summary>Lame Very Short Version</summary>
-		public string LameVeryShortVersion { get { return NativeMethods.get_lame_very_short_version(); } }
+		public static string LameVeryShortVersion { get { return NativeMethods.get_lame_very_short_version(); } }
 		/// <summary>Lame Psychoacoustic Version</summary>
-		public string LamePsychoacousticVersion { get { return NativeMethods.get_psy_version(); } }
+		public static string LamePsychoacousticVersion { get { return NativeMethods.get_psy_version(); } }
 		/// <summary>Lame URL</summary>
-		public string LameURL { get { return NativeMethods.get_lame_url(); } }
+		public static string LameURL { get { return NativeMethods.get_lame_url(); } }
 		/// <summary>Lame library bit width - 32 or 64 bit</summary>
-		public string LameOSBitness { get { return NativeMethods.get_lame_os_bitness(); } }
+		public static string LameOSBitness { get { return NativeMethods.get_lame_os_bitness(); } }
 
 		/// <summary>Get LAME version information</summary>
 		/// <returns>LAME version structure</returns>
-		public LAMEVersion GetLameVersion()
+		public static LAMEVersion GetLameVersion()
 		{
 			LAMEVersion ver = new LAMEVersion();
 			NativeMethods.get_lame_version_numerical(ver);

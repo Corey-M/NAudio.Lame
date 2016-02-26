@@ -122,16 +122,24 @@ namespace NAudio.Lame
 
 	/// <summary>Delegate for receiving output messages</summary>
 	/// <param name="text">Text to output</param>
-	public delegate void ReportFunction(string text);
+	/// <remarks>Output from the LAME library is very limited.  At this stage only a few direct calls will result in output. No output is normally generated during encoding.</remarks>
+	public delegate void OutputHandler(string text);
+
+	/// <summary>Delegate for progress feedback from encoder</summary>
+	/// <param name="writer"><see cref="LameMP3FileWriter"/> instance that the progress update is for</param>
+	/// <param name="inputBytes">Total number of bytes passed to encoder</param>
+	/// <param name="outputBytes">Total number of bytes written to output</param>
+	/// <param name="finished">True if encoding process is completed</param>
+	public delegate void ProgressHandler(object writer, long inputBytes, long outputBytes, bool finished);
 
 	/// <summary>MP3 encoding class, uses libmp3lame DLL to encode.</summary>
 	public class LameMP3FileWriter : Stream
 	{
+		/// <summary>Static initializer, ensures that the correct library is loaded</summary>
 		static LameMP3FileWriter()
 		{
 			Loader.Init();
 		}
-
 
 		// Ensure that the Loader is initialized correctly
 		//static bool init_loader = Loader.Initialized;
@@ -154,39 +162,51 @@ namespace NAudio.Lame
 		/// </para>
 		/// </remarks>
 		// uncomment to suppress CodeAnalysis warnings for the ArrayUnion class:
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Portability", "CA1900:ValueTypeFieldsShouldBePortable", Justification = "This design breaks portability, but is never exposed outside the class.  Tested on 32-bit and 64-bit.")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Portability", "CA1900:ValueTypeFieldsShouldBePortable", Justification = "This design breaks portability, but is never exposed outside the class.  Tested on x86 and x64 architectures.")]
 		[StructLayout(LayoutKind.Explicit)]
 		private class ArrayUnion
 		{
-			/// <summary>Size array in bytes</summary>
+			/// <summary>Length of the byte array</summary>
 			[FieldOffset(0)]
 			public readonly int nBytes;
 
+			/// <summary>Array of unsigned 8-bit integer values, length will be misreported</summary>
 			[FieldOffset(16)]
 			public readonly byte[] bytes;
 
+			/// <summary>Array of signed 16-bit integer values, length will be misreported</summary>
 			[FieldOffset(16)]
 			public readonly short[] shorts;
 
+			/// <summary>Array of signed 32-bit integer values, length will be misreported</summary>
 			[FieldOffset(16)]
 			public readonly int[] ints;
 
+			/// <summary>Array of signed 64-bit integer values, length will be correct</summary>
 			[FieldOffset(16)]
 			public readonly long[] longs;
 
+			/// <summary>Array of signed 32-bit floating point values, length will be misreported</summary>
 			[FieldOffset(16)]
 			public readonly float[] floats;
 
+			/// <summary>Array of signed 64-bit floating point values, length will be correct</summary>
+			/// <remarks>This is the actual array allocated by the constructor</remarks>
 			[FieldOffset(16)]
 			public readonly double[] doubles;
 
 			// True sizes of the various array types, calculated from number of bytes
 
+			/// <summary>Actual length of the 'shorts' member array</summary>
 			public int nShorts { get { return nBytes / 2; } }
+			/// <summary>Actual length of the 'ints' member array</summary>
 			public int nInts { get { return nBytes / 4; } }
+			/// <summary>Actual length of the 'longs' member array</summary>
 			public int nLongs { get { return nBytes / 8; } }
+			/// <summary>Actual length of the 'floats' member array</summary>
 			public int nFloats { get { return nBytes / 4; } }
-			public int nDoubles { get { return nBytes / 8; } }
+			/// <summary>Actual length of the 'doubles' member array</summary>
+			public int nDoubles { get { return doubles.Length; } }
 
 			/// <summary>Initialize array to hold the requested number of bytes</summary>
 			/// <param name="reqBytes">Minimum byte count of array</param>
@@ -204,6 +224,11 @@ namespace NAudio.Lame
 
 				this.doubles = new double[reqDoubles];
 				this.nBytes = reqDoubles * 8;
+			}
+
+			private ArrayUnion()
+			{
+				throw new Exception("Default constructor cannot be called for ArrayUnion");
 			}
 		};
 
@@ -425,8 +450,8 @@ namespace NAudio.Lame
 		/// <summary>Output buffer, size determined by call to Lame.beInitStream</summary>
 		protected byte[] outBuffer;
 
-		long InputByteCount = 0;
-		long OutputByteCount = 0;
+		long _inputByteCount = 0;
+		long _outputByteCount = 0;
 
 		// encoder write functions, one for each supported input wave format
 		
@@ -471,11 +496,14 @@ namespace NAudio.Lame
 			if (rc > 0)
 			{
 				outStream.Write(outBuffer, 0, rc);
-				OutputByteCount += rc;
+				_outputByteCount += rc;
 			}
 
-			InputByteCount += inPosition;
+			_inputByteCount += inPosition;
 			inPosition = 0;
+
+			// report progress
+			RaiseProgress(false);
 		}
 		#endregion
 
@@ -530,7 +558,13 @@ namespace NAudio.Lame
 			// finalize compression
 			int rc = _lame.Flush(outBuffer, outBuffer.Length);
 			if (rc > 0)
+			{
 				outStream.Write(outBuffer, 0, rc);
+				_outputByteCount += rc;
+			}
+
+			// report progress
+			RaiseProgress(true);
 
 			// Cannot continue after flush, so clear output stream
 			if (disposeOutput)
@@ -601,6 +635,73 @@ namespace NAudio.Lame
 				if (_genres == null)
 					_genres = LibMp3Lame.ID3GenreList();
 				return _genres;
+			}
+		}
+		#endregion
+
+		#region LAME library print hooks
+		/// <summary>Set output function for Error output</summary>
+		/// <param name="fn">Function to call for Error output</param>
+		public void SetErrorFunction(OutputHandler fn)
+		{
+			GetLameInstance().SetErrorFunc(t => fn(t));
+		}
+
+		/// <summary>Set output function for Debug output</summary>
+		/// <param name="fn">Function to call for Debug output</param>
+		public void SetDebugFunction(OutputHandler fn)
+		{
+			GetLameInstance().SetMsgFunc(t => fn(t));
+		}
+
+		/// <summary>Set output function for Message output</summary>
+		/// <param name="fn">Function to call for Message output</param>
+		public void SetMessageFunction(OutputHandler fn)
+		{
+			GetLameInstance().SetMsgFunc(t => fn(t));
+		}
+
+		/// <summary>Get configuration of LAME context, results passed to Message function</summary>
+		public void PrintLAMEConfig()
+		{
+			GetLameInstance().PrintConfig();
+		}
+
+		/// <summary>Get internal settings of LAME context, results passed to Message function</summary>
+		public void PrintLAMEInternals()
+		{
+			GetLameInstance().PrintInternals();
+		}
+		#endregion
+
+		#region Progress event
+		int _minProgressTime = 100;
+		/// <summary>Minimimum time between progress events in ms, or 0 for no limit</summary>
+		/// <remarks>Defaults to 100ms</remarks>
+		public int MinProgressTime
+		{
+			get { return _minProgressTime; }
+			set
+			{
+				_minProgressTime = Math.Max(0, value);
+			}
+		}
+
+		/// <summary>Called when data is written to the output file from Encode or Flush</summary>
+		public event ProgressHandler OnProgress;
+
+		DateTime _lastProgress = DateTime.Now;
+		/// <summary>Call any registered OnProgress handlers</summary>
+		/// <param name="finished">True if called at end of output</param>
+		protected void RaiseProgress(bool finished)
+		{
+			var timeDelta = DateTime.Now - _lastProgress;
+			if (finished || timeDelta.TotalMilliseconds >= _minProgressTime)
+			{
+				_lastProgress = DateTime.Now;
+				var prog = OnProgress;
+				if (prog != null)
+					prog(this, _inputByteCount, _outputByteCount, finished);
 			}
 		}
 		#endregion

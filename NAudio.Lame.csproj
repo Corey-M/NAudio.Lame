@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ID3TagData.cs" />
+    <Compile Include="LameDLL.cs" />
     <Compile Include="Loader.cs" />
     <Compile Include="MP3FileWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
