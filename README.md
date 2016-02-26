@@ -81,7 +81,50 @@ And yes, you *can* add a cover image, in JPG, PNG or GIF format.  It should supp
 		}
 	}
 
-### To Do List:
+### Progress Events
+
+As of v1.0.4 there is now an event (`MP3FileWriter.OnProgress`)that you can use to get progress information during the encoding process.  After each call to the LAME encoder the number of bytes in and out are sent to whatever event handler you've attached.  At the end of the process when the encoder is closing it will send the final numbers along with a flag to indicate that the encoding is complete.
+
+Since blocks are encoded very frequently I've added a very simple rate limiter that will skip progress notifications if one has happened within a certain time, except for the final progress event which is always raised.  By default the progress time limit is 100ms, so you should get no more than 10 progress updates per second.  You can raise or lower this by changing the `MP3FileWriter.MinProgressTime` property.  Timing is approximate as it uses `DateTime` to store the last progress timestamp.  Resolution may vary, but expect 15ms to be a fairly common minimum.  Setting `MinProgressTime` to 0 will disable the delay and send you updates for every encoder call.
+
+#### Sample Code
+
+	using NAudio.Wave;
+	using NAudio.Lame;
+	using System;
+
+	class Program
+	{
+		// For calculation of progress percentage, total bytes to be input
+		static long input_length = 0;
+
+		static void Main(string[] args)
+		{
+			using (var reader = new NAudio.Wave.AudioFileReader(@"C:\Temp\TestWave.wav"))
+			using (var writer = new NAudio.Lame.LameMP3FileWriter(@"C:\Temp\Encoded.mp3", reader.WaveFormat, NAudio.Lame.LAMEPreset.V3))
+			{
+				writer.MinProgressTime = 250;
+				input_length = reader.Length;
+				writer.OnProgress += writer_OnProgress;
+				reader.CopyTo(writer);
+			}
+		}
+
+		static void writer_OnProgress(object writer, long inputBytes, long outputBytes, bool finished)
+		{
+			string msg = string.Format("Progress: {0:0.0}%, Output: {1:#,0} bytes, Ratio: 1:{2:0.0}",
+				(inputBytes * 100.0) / input_length,
+				outputBytes,
+				((double)inputBytes) / Math.Max(1, outputBytes));
+
+			Console.Write("\r{0," + (Console.BufferWidth - 1).ToString() + "}\r{1}", "", msg);
+			if (finished)
+				Console.WriteLine();
+		}
+	}
+
+
+### To Do List (indefinitely postponed):
 
 - ~~Create a nuget package~~
 - Add support for decoding via libmp3lame
