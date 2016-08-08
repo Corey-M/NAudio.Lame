@@ -619,10 +619,14 @@ namespace NAudio.Lame
 			if (!string.IsNullOrEmpty(tag.Track))
 				_lame.ID3SetTrack(tag.Track);
 
-			if (!string.IsNullOrEmpty(tag.Subtitle))
-				_lame.ID3SetFieldValue(string.Format("TIT3={0}", tag.Subtitle));
+            if (!string.IsNullOrEmpty(tag.Subtitle))
+                _lame.ID3SetFieldValue(string.Format("TIT3={0}", tag.Subtitle));
 
-			if (tag.AlbumArt != null && tag.AlbumArt.Length > 0 && tag.AlbumArt.Length < 131072)
+            if (!string.IsNullOrEmpty(tag.AlbumArtist))
+                _lame.ID3SetFieldValue(string.Format("TPE2={0}", tag.AlbumArtist));
+
+
+            if (tag.AlbumArt != null && tag.AlbumArt.Length > 0 && tag.AlbumArt.Length < 131072)
 				_lame.ID3SetAlbumArt(tag.AlbumArt);
 		}
 

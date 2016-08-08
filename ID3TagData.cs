@@ -27,8 +27,10 @@ namespace NAudio.Lame
 		// Experimental:
 		/// <summary>Subtitle (TIT3)</summary>
 		public string Subtitle;
+        /// <summary>AlbumArtist (TPE2)</summary>
+        public string AlbumArtist;
 
-		/// <summary>Album art - PNG, JPG or GIF file content</summary>
-		public byte[] AlbumArt;
+        /// <summary>Album art - PNG, JPG or GIF file content</summary>
+        public byte[] AlbumArt;
 	}
 }
