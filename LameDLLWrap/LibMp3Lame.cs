@@ -27,22 +27,25 @@
 //
 // Contents of the LibMp3Lame.NativeMethods class and associated enumerations 
 // are directly based on the lame.h v1.190, available at:
-//		http://lame.cvs.sourceforge.net/viewvc/lame/lame/include/lame.h?revision=1.190&content-type=text%2Fplain
+//                http://lame.cvs.sourceforge.net/viewvc/lame/lame/include/lame.h?revision=1.190&content-type=text%2Fplain
 //
 // Source lines and comments included where useful/possible.
 //
 #endregion
 using System;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-
-namespace NAudio.Lame
+using System.Runtime.InteropServices;
+namespace LameDLLWrap
 {
+//	using NAudio.Lame;
+
 	/// <summary>LAME encoding presets</summary>
-	public enum LAMEPreset : int
+	internal enum LAMEPreset : int
 	{
-		/*values from 8 to 320 should be reserved for abr bitrates*/
-		/*for abr I'd suggest to directly use the targeted bitrate as a value*/
+		//values from 8 to 320 should be reserved for abr bitrates
+		//for abr I'd suggest to directly use the targeted bitrate as a value
 
 		/// <summary>8-kbit ABR</summary>
 		ABR_8 = 8,
@@ -65,9 +68,9 @@ namespace NAudio.Lame
 		/// <summary>320-kbit ABR</summary>
 		ABR_320 = 320,
 
-		/*Vx to match Lame and VBR_xx to match FhG*/
+		//Vx to match Lame and VBR_xx to match FhG
 		/// <summary>VBR Quality 9</summary>
-		V9 = 410, 
+		V9 = 410,
 		/// <summary>FhG: VBR Q10</summary>
 		VBR_10 = 410,
 		/// <summary>VBR Quality 8</summary>
@@ -107,7 +110,7 @@ namespace NAudio.Lame
 		/// <summary>FhG: VBR Q100</summary>
 		VBR_100 = 500,
 
-		/*still there for compatibility*/
+		// still there for compatibility
 		/// <summary>R3Mix quality - </summary>
 		R3MIX = 1000,
 		/// <summary>Standard Quality</summary>
@@ -125,10 +128,23 @@ namespace NAudio.Lame
 		/// <summary>Fast Medium Quality</summary>
 		MEDIUM_FAST = 1007
 	}
-}
 
-namespace NAudio.Lame.DLL
-{
+	/// <summary>Delegate for receiving output messages</summary>
+	/// <param name="text">Text to output</param>
+	public delegate void ReportFunction(string text);
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl, SetLastError = true, CharSet = CharSet.Ansi)]
+	internal delegate void delReportFunction(string fmt, IntPtr args);
+
+	public delegate void GenreCallback(int index, string genre);
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl, SetLastError = true, CharSet = CharSet.Ansi)]
+	internal delegate void delGenreCallback(
+		int index, 
+		string genre,
+		IntPtr cookie
+	);
+
 	/// <summary>MPEG channel mode</summary>
 	public enum MPEGMode : uint
 	{
@@ -155,9 +171,7 @@ namespace NAudio.Lame.DLL
 		SSE = 3
 	}
 
-	/// <summary>
-	/// Variable BitRate Mode
-	/// </summary>
+	/// <summary>Variable BitRate Mode</summary>
 	public enum VBRMode : uint
 	{
 		/// <summary>No VBR (Constant Bitrate)</summary>
@@ -227,6 +241,42 @@ namespace NAudio.Lame.DLL
 			}
 		}
 	}
+
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct mp3data
+    {
+        /// <summary>1 if header was parsed and following data was computed</summary>
+        [MarshalAs(UnmanagedType.Bool)]
+        public bool header_parsed;
+        /// <summary>number of channels</summary>
+        public int stereo;
+        /// <summary>sample rate</summary>
+        public int samplerate;
+        /// <summary>bitrate</summary>
+        public int bitrate;
+        /// <summary>mp3 frame type</summary>
+        public int mode;
+        /// <summary>mp3 frame type</summary>
+        public int mode_ext;
+        /// <summary>number of samples per MP3 frame</summary>
+        public int framesize;
+
+        // This data is only computed if mpglib detects a Xing VBR header
+
+        /// <summary>number of samples in MP3 file</summary>
+        public ulong nsamp;
+        /// <summary>total number of frames in MP3 file</summary>
+        public int totalframes;
+
+        // This data is not currently computed by mpglib
+
+        /// <summary>frames decoded counter</summary>
+        public int framenum;
+    }
+
+
+
 
 	/// <summary>LAME interface class</summary>
 	public class LibMp3Lame : IDisposable
@@ -306,28 +356,28 @@ namespace NAudio.Lame.DLL
 
 		#region Input Stream Description
 		/// <summary>Number of samples (optional)</summary>
-		public UInt64 NumSamples 
-		{ 
-			get { return NativeMethods.lame_get_num_samples(context); } 
-			set { setter(NativeMethods.lame_set_num_samples, value); } 
+		public UInt64 NumSamples
+		{
+			get { return NativeMethods.lame_get_num_samples(context); }
+			set { setter(NativeMethods.lame_set_num_samples, value); }
 		}
 		/// <summary>Input sample rate</summary>
-		public int InputSampleRate 
-		{ 
-			get { return NativeMethods.lame_get_in_samplerate(context); } 
-			set { setter(NativeMethods.lame_set_in_samplerate, value); } 
+		public int InputSampleRate
+		{
+			get { return NativeMethods.lame_get_in_samplerate(context); }
+			set { setter(NativeMethods.lame_set_in_samplerate, value); }
 		}
 		/// <summary>Number of channels</summary>
-		public int NumChannels 
-		{ 
-			get { return NativeMethods.lame_get_num_channels(context); } 
-			set { setter(NativeMethods.lame_set_num_channels, value); } 
+		public int NumChannels
+		{
+			get { return NativeMethods.lame_get_num_channels(context); }
+			set { setter(NativeMethods.lame_set_num_channels, value); }
 		}
 		/// <summary>Global amplification factor</summary>
-		public float Scale 
-		{ 
-			get { return NativeMethods.lame_get_scale(context); } 
-			set { setter(NativeMethods.lame_set_scale, value); } 
+		public float Scale
+		{
+			get { return NativeMethods.lame_get_scale(context); }
+			set { setter(NativeMethods.lame_set_scale, value); }
 		}
 		/// <summary>Left channel amplification</summary>
 		public float ScaleLeft
@@ -417,22 +467,22 @@ namespace NAudio.Lame.DLL
 			set { setter(NativeMethods.lame_set_nogap_currentindex, value); }
 		}
 		/// <summary>Output bitrate</summary>
-		public int BitRate 
+		public int BitRate
 		{
 			get { return NativeMethods.lame_get_brate(context); }
-			set { setter(NativeMethods.lame_set_brate, value); } 
+			set { setter(NativeMethods.lame_set_brate, value); }
 		}
 		/// <summary>Output compression ratio</summary>
-		public float CompressionRatio 
+		public float CompressionRatio
 		{
 			get { return NativeMethods.lame_get_compression_ratio(context); }
-			set { setter(NativeMethods.lame_set_compression_ratio, value); } 
+			set { setter(NativeMethods.lame_set_compression_ratio, value); }
 		}
 
 		/// <summary>Set compression preset</summary>
-		public bool SetPreset(LAMEPreset preset)
+		public bool SetPreset(int preset)
 		{
-			int res = NativeMethods.lame_set_preset(context, preset);
+			int res = NativeMethods.lame_set_preset(context, (LAMEPreset) preset);
 			return res == 0;
 		}
 
@@ -446,34 +496,34 @@ namespace NAudio.Lame.DLL
 
 		#region Frame parameters
 		/// <summary>Set output Copyright flag</summary>
-		public bool Copyright 
+		public bool Copyright
 		{
-			get { return NativeMethods.lame_get_copyright(context); } 
-			set { setter(NativeMethods.lame_set_copyright, value); } 
+			get { return NativeMethods.lame_get_copyright(context); }
+			set { setter(NativeMethods.lame_set_copyright, value); }
 		}
 		/// <summary>Set output Original flag</summary>
-		public bool Original 
-		{ 
-			get { return NativeMethods.lame_get_original(context); } 
-			set { setter(NativeMethods.lame_set_original, value); } 
+		public bool Original
+		{
+			get { return NativeMethods.lame_get_original(context); }
+			set { setter(NativeMethods.lame_set_original, value); }
 		}
 		/// <summary>Set error protection.  Uses 2 bytes from each frame for CRC checksum</summary>
-		public bool ErrorProtection 
-		{ 
-			get { return NativeMethods.lame_get_error_protection(context); } 
-			set { setter(NativeMethods.lame_set_error_protection, value); } 
+		public bool ErrorProtection
+		{
+			get { return NativeMethods.lame_get_error_protection(context); }
+			set { setter(NativeMethods.lame_set_error_protection, value); }
 		}
 		/// <summary>MP3 'private extension' bit.  Meaningless.</summary>
-		public bool Extension 
-		{ 
-			get { return NativeMethods.lame_get_extension(context); } 
-			set { setter(NativeMethods.lame_set_extension, value); } 
+		public bool Extension
+		{
+			get { return NativeMethods.lame_get_extension(context); }
+			set { setter(NativeMethods.lame_set_extension, value); }
 		}
 		/// <summary>Enforce strict ISO compliance.</summary>
-		public bool StrictISO 
-		{ 
-			get { return NativeMethods.lame_get_strict_ISO(context); } 
-			set { setter(NativeMethods.lame_set_strict_ISO, value); } 
+		public bool StrictISO
+		{
+			get { return NativeMethods.lame_get_strict_ISO(context); }
+			set { setter(NativeMethods.lame_set_strict_ISO, value); }
 		}
 		#endregion
 
@@ -604,7 +654,13 @@ namespace NAudio.Lame.DLL
 
 		internal static class NativeMethods
 		{
-			const string libname = @"libmp3lame.dll";
+#if X64
+			const string libname = @"libmp3lame.64.dll";
+#else
+			const string libname = @"libmp3lame.32.dll";
+#endif
+
+			public static readonly string BoundDLL = libname;
 
 			// typedef void (*lame_report_function)(const char *format, va_list ap);
 
@@ -626,7 +682,7 @@ namespace NAudio.Lame.DLL
 			 * final call to free all remaining buffers
 			 */
 			// int  CDECL lame_close (lame_global_flags *);
-			[DllImport("libmp3lame.dll", CallingConvention = CallingConvention.Cdecl)]
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern int lame_close(IntPtr context);
 
 			#endregion
@@ -1619,9 +1675,6 @@ namespace NAudio.Lame.DLL
 			#endregion
 
 			#region Reporting callbacks
-			[UnmanagedFunctionPointer(CallingConvention.Cdecl, SetLastError = true, CharSet = CharSet.Ansi)]
-			internal delegate void delReportFunction(string fmt, IntPtr args);
-
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern int lame_set_errorf(IntPtr context, delReportFunction fn);
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
@@ -1636,8 +1689,7 @@ namespace NAudio.Lame.DLL
 
 
 			#endregion
-
-
+            
 			#region 'printf' support for reporting functions
 			[DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, ThrowOnUnmappableChar = true, BestFitMapping = false)]
 			internal static extern int _vsnprintf_s(
@@ -1654,6 +1706,158 @@ namespace NAudio.Lame.DLL
 				return sb.ToString().Replace("\xFF", "\t");
 			}
 			#endregion
+
+
+            #region Decoding
+            /// <summary>required call to initialize decoder</summary>
+            /// <returns>Decoder context handle</returns>
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern IntPtr hip_decode_init();
+
+            /// <summary>cleanup call to exit decoder</summary>
+            /// <param name="decContext">Decoder context</param>
+            /// <returns></returns>
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int hip_decode_exit(IntPtr decContext);
+
+            /// <summary>Hip reporting function: error</summary>
+            /// <param name="decContext">Decoder context</param>
+            /// <param name="f">Reporting function</param>
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern void hip_set_errorf(IntPtr decContext, delReportFunction f);
+
+            /// <summary>Hip reporting function: debug</summary>
+            /// <param name="decContext">Decoder context</param>
+            /// <param name="f">Reporting function</param>
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern void hip_set_debugf(IntPtr decContext, delReportFunction f);
+
+            /// <summary>Hip reporting function: message</summary>
+            /// <param name="decContext">Decoder context</param>
+            /// <param name="f">Reporting function</param>
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern void hip_set_msgf(IntPtr decContext, delReportFunction f);
+
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int hip_decode(IntPtr decContext, [In] byte[] mp3buf, int len, [In, Out] short[] pcm_l, [In, Out] short[] pcm_r);
+
+            // Same as hip_decode, and also returns mp3 header data
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int hip_decode_headers(IntPtr decContext, [In] byte[] mp3buf, int len, [In, Out] short[] pcm_l, [In, Out] short[] pcm_r, [Out] mp3data mp3data);
+
+            // Same as hip_decode, but returns at most 1 frame
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int hip_decode1(IntPtr decContext, [In] byte[] mp3buf, int len, [In, Out] short[] pcm_l, [In, Out] short[] pcm_r);
+
+            // Same as hip_decode1, but returns at most 1 frame and mp3 header data
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int hip_decode1_headers(IntPtr decContext, [In] byte[] mp3buf, int len, [In, Out] short[] pcm_l, [In, Out] short[] pcm_r, [Out] mp3data mp3data);
+
+            // Same as hip_decode1_headers but also returns enc_delay and enc_padding 
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int hip_decode(IntPtr decContext, [In] byte[] mp3buf, int len, [In, Out] short[] pcm_l, [In, Out] short[] pcm_r, [Out] mp3data mp3data, out int enc_delay, out int enc_padding);
+
+            #endregion
+
+			#region ID3 tag support
+			// utility to obtain alphabetically sorted list of genre names with numbers
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_genre_list(delGenreCallback handler, IntPtr cookie);
+
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_init(IntPtr context);
+
+			// force addition of ID3v2 tag
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_add_v2(IntPtr context);
+
+			// add only a v1 tag
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_v1_only(IntPtr context);
+
+			// add only a v2 tag
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_v2_only(IntPtr context);
+
+			// pad version 1 tag with spaces instead of nulls
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_space_v1(IntPtr context);
+
+			// pad version 2 tag with extra 128 bytes
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_pad_v2(IntPtr context);
+
+			// pad version 2 tag with extra n bytes
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_set_pad(IntPtr context, int n);
+
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_set_title(IntPtr context, string title);
+
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_set_artist(IntPtr context, string artist);
+
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_set_album(IntPtr context, string album);
+
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_set_year(IntPtr context, string year);
+
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_set_comment(IntPtr context, string comment);
+
+			// return -1 result if track number is out of ID3v1 range and ignored for ID3v1
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			[return: MarshalAs(UnmanagedType.Bool)]
+			internal static extern bool id3tag_set_track(IntPtr context, string track);
+
+			// return non-zero result if genre name or number is invalid
+			// result 0: OK
+			// result -1: genre number out of range
+			// result -2: no valid ID3v1 genre name, mapped to ID3v1 'Other'
+			//            but taken as-is for ID3v2 genre tag
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern int id3tag_set_genre(IntPtr context, string genre);
+
+			// return non-zero result if field name is invalid
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			[return: MarshalAs(UnmanagedType.Bool)]
+			internal static extern bool id3tag_set_fieldvalue(IntPtr context, string value);
+
+			// return non-zero result if image type is invalid
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			[return: MarshalAs(UnmanagedType.Bool)]
+			internal static extern bool id3tag_set_albumart(IntPtr context, [In]byte[] image, int size);
+
+			// lame_get_id3v1_tag copies ID3v1 tag into buffer.
+			// Function returns number of bytes copied into buffer, or number
+			// of bytes required if 'size' is too small.
+			// Function fails, if returned value is larger than 'size'
+			// NOTE:
+			// This function does nothing, if user/LAME disabled ID3v1 tag
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern int id3tag_get_id3v1_tag(IntPtr context, [In, Out]byte[] buffer, int size);
+
+			// lame_get_id3v2_tag copies ID3v2 tag into buffer.
+			// Function returns number of bytes copied into buffer, or number
+			// of bytes required if 'size' is too small.
+			// Function fails, if returned value is larger than 'size'
+			// NOTE:
+			// This function does nothing, if user/LAME disabled ID3v2 tag
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern int id3tag_get_id3v2_tag(IntPtr context, [In, Out]byte[] buffer, int size);
+
+			// normally lame_init_param writes ID3v2 tags into the audio stream
+			// Call lame_set_write_id3tag_automatic(gfp, 0) before lame_init_param 
+			// to turn off this behaviour and get ID3v2 tag with above function 
+			// write it yourself into your file.
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			internal static extern void id3tag_set_write_id3tag_automatic(IntPtr context, bool value);
+
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			[return: MarshalAs(UnmanagedType.Bool)]
+			internal static extern bool id3tag_get_write_id3tag_automatic(IntPtr context);
+			#endregion
 		}
 
 		/// <summary>Print out LAME configuration to standard output, or to registered output function</summary>
@@ -1662,10 +1866,6 @@ namespace NAudio.Lame.DLL
 		public void PrintInternals() { NativeMethods.lame_print_internals(context); }
 
 		#region Reporting function support
-
-		/// <summary>Delegate for receiving output messages</summary>
-		/// <param name="text">Text to output</param>
-		public delegate void ReportFunction(string text);
 
 		private ReportFunction rptError = null;
 		private ReportFunction rptDebug = null;
@@ -1718,6 +1918,176 @@ namespace NAudio.Lame.DLL
 		public void SetMsgFunc(ReportFunction fn)
 		{
 			rptMsg = fn;
+		}
+		#endregion
+
+		#region ID3 tag support
+		private static GenreCallback id3GenreCallback = null;
+		
+		private static void ID3Genre_proxy(int index, string genre, IntPtr cookie)
+		{
+			if (id3GenreCallback != null)
+				id3GenreCallback(index, genre);
+		}
+
+#if false // disabled for now, call ID3GenreList method instead
+		public void SetID3GenreCallback(GenreCallback fn)
+		{
+			id3GenreCallback = fn;
+		}
+#endif
+		/// <summary>Utility to obtain a list of genre names with numbers</summary>
+		/// <returns>Dictionary containing genres</returns>
+		public static Dictionary<int, string> ID3GenreList()
+		{
+			Dictionary<int, string> res = new Dictionary<int, string>();
+			GenreCallback cbsave = id3GenreCallback;
+			id3GenreCallback = (idx, gen) => res[idx] = gen;
+
+			NativeMethods.id3tag_genre_list(ID3Genre_proxy, IntPtr.Zero);
+			id3GenreCallback = null;
+			id3GenreCallback = cbsave;
+			return res;
+		}
+
+		/// <summary>Initialize ID3 tag on context, clearing any existing ID3 information</summary>
+		public void ID3Init()
+		{
+			NativeMethods.id3tag_init(context);
+		}
+
+		/// <summary>force addition of ID3v2 tag</summary>
+		public void ID3AddV2()
+		{
+			NativeMethods.id3tag_add_v2(context);
+		}
+
+		/// <summary>add only a version 1 tag</summary>
+		public void ID3V1Only()
+		{
+			NativeMethods.id3tag_v1_only(context);
+		}
+
+		/// <summary>add only a version 2 tag</summary>
+		public void ID3V2Only()
+		{
+			NativeMethods.id3tag_v2_only(context);
+		}
+
+		/// <summary>pad version 1 tag with spaces instead of nulls</summary>
+		public void ID3SpaceV1()
+		{
+			NativeMethods.id3tag_space_v1(context);
+		}
+
+		/// <summary>pad version 2 tag with extra 128 bytes</summary>
+		public void ID3PadV2()
+		{
+			NativeMethods.id3tag_pad_v2(context);
+		}
+
+		/// <summary>pad version 2 tag with extra <paramref name="nBytes"/> bytes</summary>
+		/// <param name="nBytes">Number of bytes to pad</param>
+		public void ID3SetPad(int nBytes)
+		{
+			NativeMethods.id3tag_set_pad(context, nBytes);
+		}
+
+		/// <summary>Set ID3 title</summary>
+		/// <param name="title">Value to set</param>
+		public void ID3SetTitle(string title)
+		{
+			NativeMethods.id3tag_set_title(context, title);
+		}
+
+		public void ID3SetArtist(string artist)
+		{
+			NativeMethods.id3tag_set_artist(context, artist);
+		}
+
+		public void ID3SetAlbum(string album)
+		{
+			NativeMethods.id3tag_set_album(context, album);
+		}
+
+		/// <summary>Set year</summary>
+		/// <param name="year">Year value to set, as string</param>
+		public void ID3SetYear(string year)
+		{
+			NativeMethods.id3tag_set_year(context, year);
+		}
+
+		/// <summary>Set year</summary>
+		/// <param name="year">Year value to set, as integer</param>
+		public void ID3SetYear(int year)
+		{
+			NativeMethods.id3tag_set_year(context, year.ToString());
+		}
+
+		public void ID3SetComment(string comment)
+		{
+			NativeMethods.id3tag_set_comment(context, comment);
+		}
+
+		public bool ID3SetTrack(string track)
+		{
+			return !NativeMethods.id3tag_set_track(context, track);
+		}
+
+		public int ID3SetGenre(string genre)
+		{
+			return NativeMethods.id3tag_set_genre(context, genre);
+		}
+
+		public int ID3SetGenre(int genreIndex)
+		{
+			return NativeMethods.id3tag_set_genre(context, genreIndex.ToString());
+		}
+
+		public bool ID3SetFieldValue(string value)
+		{
+			return !NativeMethods.id3tag_set_fieldvalue(context, value);
+		}
+
+		/// <summary>Set albumart of ID3 tag</summary>
+		/// <param name="image">raw image file data</param>
+		/// <returns>True if successful, else false</returns>
+		/// <remarks>Supported formats: JPG, PNG, GIF.
+		/// Max image size: 128KB</remarks>
+		public bool ID3SetAlbumArt(byte[] image)
+		{
+			bool res = NativeMethods.id3tag_set_albumart(context, image, image.Length);
+			return !res;
+		}
+
+		public byte[] ID3GetID3v1Tag()
+		{
+			int len = NativeMethods.id3tag_get_id3v1_tag(context, new byte[] { }, 0);
+			if (len < 1)
+				return null;
+			byte[] res = new byte[len];
+			int rc = NativeMethods.id3tag_get_id3v1_tag(context, res, len);
+			if (rc != len)
+				return null;
+			return res;
+		}
+
+		public byte[] ID3GetID3v2Tag()
+		{
+			int len = NativeMethods.id3tag_get_id3v2_tag(context, new byte[] { }, 0);
+			if (len < 1)
+				return null;
+			byte[] res = new byte[len];
+			int rc = NativeMethods.id3tag_get_id3v2_tag(context, res, len);
+			if (rc != len)
+				return null;
+			return res;
+		}
+
+		public bool ID3WriteTagAutomatic
+		{
+			get { return NativeMethods.id3tag_get_write_id3tag_automatic(context); }
+			set { NativeMethods.id3tag_set_write_id3tag_automatic(context, value); }
 		}
 		#endregion
 	}

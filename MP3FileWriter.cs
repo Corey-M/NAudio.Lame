@@ -26,14 +26,124 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using NAudio.Lame.DLL;
 using NAudio.Wave;
+using LameDLLWrap;
+using System.Collections.Generic;
 
 namespace NAudio.Lame
 {
+	/// <summary>LAME encoding presets</summary>
+	public enum LAMEPreset : int
+	{
+		/*values from 8 to 320 should be reserved for abr bitrates*/
+		/*for abr I'd suggest to directly use the targeted bitrate as a value*/
+
+		/// <summary>8-kbit ABR</summary>
+		ABR_8 = 8,
+		/// <summary>16-kbit ABR</summary>
+		ABR_16 = 16,
+		/// <summary>32-kbit ABR</summary>
+		ABR_32 = 32,
+		/// <summary>48-kbit ABR</summary>
+		ABR_48 = 48,
+		/// <summary>64-kbit ABR</summary>
+		ABR_64 = 64,
+		/// <summary>96-kbit ABR</summary>
+		ABR_96 = 96,
+		/// <summary>128-kbit ABR</summary>
+		ABR_128 = 128,
+		/// <summary>160-kbit ABR</summary>
+		ABR_160 = 160,
+		/// <summary>256-kbit ABR</summary>
+		ABR_256 = 256,
+		/// <summary>320-kbit ABR</summary>
+		ABR_320 = 320,
+
+		/*Vx to match Lame and VBR_xx to match FhG*/
+		/// <summary>VBR Quality 9</summary>
+		V9 = 410,
+		/// <summary>FhG: VBR Q10</summary>
+		VBR_10 = 410,
+		/// <summary>VBR Quality 8</summary>
+		V8 = 420,
+		/// <summary>FhG: VBR Q20</summary>
+		VBR_20 = 420,
+		/// <summary>VBR Quality 7</summary>
+		V7 = 430,
+		/// <summary>FhG: VBR Q30</summary>
+		VBR_30 = 430,
+		/// <summary>VBR Quality 6</summary>
+		V6 = 440,
+		/// <summary>FhG: VBR Q40</summary>
+		VBR_40 = 440,
+		/// <summary>VBR Quality 5</summary>
+		V5 = 450,
+		/// <summary>FhG: VBR Q50</summary>
+		VBR_50 = 450,
+		/// <summary>VBR Quality 4</summary>
+		V4 = 460,
+		/// <summary>FhG: VBR Q60</summary>
+		VBR_60 = 460,
+		/// <summary>VBR Quality 3</summary>
+		V3 = 470,
+		/// <summary>FhG: VBR Q70</summary>
+		VBR_70 = 470,
+		/// <summary>VBR Quality 2</summary>
+		V2 = 480,
+		/// <summary>FhG: VBR Q80</summary>
+		VBR_80 = 480,
+		/// <summary>VBR Quality 1</summary>
+		V1 = 490,
+		/// <summary>FhG: VBR Q90</summary>
+		VBR_90 = 490,
+		/// <summary>VBR Quality 0</summary>
+		V0 = 500,
+		/// <summary>FhG: VBR Q100</summary>
+		VBR_100 = 500,
+
+		/*still there for compatibility*/
+		/// <summary>R3Mix quality - </summary>
+		R3MIX = 1000,
+		/// <summary>Standard Quality</summary>
+		STANDARD = 1001,
+		/// <summary>Extreme Quality</summary>
+		EXTREME = 1002,
+		/// <summary>Insane Quality</summary>
+		INSANE = 1003,
+		/// <summary>Fast Standard Quality</summary>
+		STANDARD_FAST = 1004,
+		/// <summary>Fast Extreme Quality</summary>
+		EXTREME_FAST = 1005,
+		/// <summary>Medium Quality</summary>
+		MEDIUM = 1006,
+		/// <summary>Fast Medium Quality</summary>
+		MEDIUM_FAST = 1007
+	}
+
+	/// <summary>Delegate for receiving output messages</summary>
+	/// <param name="text">Text to output</param>
+	/// <remarks>Output from the LAME library is very limited.  At this stage only a few direct calls will result in output. No output is normally generated during encoding.</remarks>
+	public delegate void OutputHandler(string text);
+
+	/// <summary>Delegate for progress feedback from encoder</summary>
+	/// <param name="writer"><see cref="LameMP3FileWriter"/> instance that the progress update is for</param>
+	/// <param name="inputBytes">Total number of bytes passed to encoder</param>
+	/// <param name="outputBytes">Total number of bytes written to output</param>
+	/// <param name="finished">True if encoding process is completed</param>
+	public delegate void ProgressHandler(object writer, long inputBytes, long outputBytes, bool finished);
+
 	/// <summary>MP3 encoding class, uses libmp3lame DLL to encode.</summary>
 	public class LameMP3FileWriter : Stream
 	{
+		/// <summary>Static initializer, ensures that the correct library is loaded</summary>
+		static LameMP3FileWriter()
+		{
+			Loader.Init();
+		}
+
+		// Ensure that the Loader is initialized correctly
+		//static bool init_loader = Loader.Initialized;
+
 		/// <summary>Union class for fast buffer conversion</summary>
 		/// <remarks>
 		/// <para>
@@ -52,39 +162,51 @@ namespace NAudio.Lame
 		/// </para>
 		/// </remarks>
 		// uncomment to suppress CodeAnalysis warnings for the ArrayUnion class:
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Portability", "CA1900:ValueTypeFieldsShouldBePortable", Justification = "This design breaks portability, but is never exposed outside the class.  Tested on 32-bit and 64-bit.")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Portability", "CA1900:ValueTypeFieldsShouldBePortable", Justification = "This design breaks portability, but is never exposed outside the class.  Tested on x86 and x64 architectures.")]
 		[StructLayout(LayoutKind.Explicit)]
 		private class ArrayUnion
 		{
-			/// <summary>Size array in bytes</summary>
+			/// <summary>Length of the byte array</summary>
 			[FieldOffset(0)]
 			public readonly int nBytes;
 
+			/// <summary>Array of unsigned 8-bit integer values, length will be misreported</summary>
 			[FieldOffset(16)]
 			public readonly byte[] bytes;
 
+			/// <summary>Array of signed 16-bit integer values, length will be misreported</summary>
 			[FieldOffset(16)]
 			public readonly short[] shorts;
 
+			/// <summary>Array of signed 32-bit integer values, length will be misreported</summary>
 			[FieldOffset(16)]
 			public readonly int[] ints;
 
+			/// <summary>Array of signed 64-bit integer values, length will be correct</summary>
 			[FieldOffset(16)]
 			public readonly long[] longs;
 
+			/// <summary>Array of signed 32-bit floating point values, length will be misreported</summary>
 			[FieldOffset(16)]
 			public readonly float[] floats;
 
+			/// <summary>Array of signed 64-bit floating point values, length will be correct</summary>
+			/// <remarks>This is the actual array allocated by the constructor</remarks>
 			[FieldOffset(16)]
 			public readonly double[] doubles;
 
 			// True sizes of the various array types, calculated from number of bytes
 
+			/// <summary>Actual length of the 'shorts' member array</summary>
 			public int nShorts { get { return nBytes / 2; } }
+			/// <summary>Actual length of the 'ints' member array</summary>
 			public int nInts { get { return nBytes / 4; } }
+			/// <summary>Actual length of the 'longs' member array</summary>
 			public int nLongs { get { return nBytes / 8; } }
+			/// <summary>Actual length of the 'floats' member array</summary>
 			public int nFloats { get { return nBytes / 4; } }
-			public int nDoubles { get { return nBytes / 8; } }
+			/// <summary>Actual length of the 'doubles' member array</summary>
+			public int nDoubles { get { return doubles.Length; } }
 
 			/// <summary>Initialize array to hold the requested number of bytes</summary>
 			/// <param name="reqBytes">Minimum byte count of array</param>
@@ -102,6 +224,11 @@ namespace NAudio.Lame
 
 				this.doubles = new double[reqDoubles];
 				this.nBytes = reqDoubles * 8;
+			}
+
+			private ArrayUnion()
+			{
+				throw new Exception("Default constructor cannot be called for ArrayUnion");
 			}
 		};
 
@@ -124,8 +251,9 @@ namespace NAudio.Lame
 		/// <param name="outFileName">Name of file to create</param>
 		/// <param name="format">Input WaveFormat</param>
 		/// <param name="quality">LAME quality preset</param>
-		public LameMP3FileWriter(string outFileName, WaveFormat format, LAMEPreset quality)
-			: this(File.Create(outFileName), format, quality)
+		/// <param name="id3">Optional ID3 data block</param>
+		public LameMP3FileWriter(string outFileName, WaveFormat format, NAudio.Lame.LAMEPreset quality, ID3TagData id3 = null)
+			: this(File.Create(outFileName), format, quality, id3)
 		{
 			this.disposeOutput = true;
 		}
@@ -134,9 +262,14 @@ namespace NAudio.Lame
 		/// <param name="outStream">Stream to write encoded data to</param>
 		/// <param name="format">Input WaveFormat</param>
 		/// <param name="quality">LAME quality preset</param>
-		public LameMP3FileWriter(Stream outStream, WaveFormat format, LAMEPreset quality)
+		/// <param name="id3">Optional ID3 data block</param>
+		public LameMP3FileWriter(Stream outStream, WaveFormat format, NAudio.Lame.LAMEPreset quality, ID3TagData id3 = null)
 			: base()
 		{
+			Loader.Init();
+			//if (!Loader.Initialized)
+			//	Loader.Initialized = false;
+
 			// sanity check
 			if (outStream == null)
 				throw new ArgumentNullException("outStream");
@@ -186,7 +319,10 @@ namespace NAudio.Lame
 			this._lame.InputSampleRate = format.SampleRate;
 			this._lame.NumChannels = format.Channels;
 
-			this._lame.SetPreset(quality);
+			this._lame.SetPreset((int)quality);
+
+			if (id3 != null)
+				ApplyID3Tag(id3);
 
 			this._lame.InitParams();
 		}
@@ -196,8 +332,9 @@ namespace NAudio.Lame
 		/// <param name="outFileName">Name of file to create</param>
 		/// <param name="format">Input WaveFormat</param>
 		/// <param name="bitRate">Output bit rate in kbps</param>
-		public LameMP3FileWriter(string outFileName, WaveFormat format, int bitRate)
-			: this(File.Create(outFileName), format, bitRate)
+		/// <param name="id3">Optional ID3 data block</param>
+		public LameMP3FileWriter(string outFileName, WaveFormat format, int bitRate, ID3TagData id3 = null)
+			: this(File.Create(outFileName), format, bitRate, id3)
 		{
 			this.disposeOutput = true;
 		}
@@ -206,9 +343,14 @@ namespace NAudio.Lame
 		/// <param name="outStream">Stream to write encoded data to</param>
 		/// <param name="format">Input WaveFormat</param>
 		/// <param name="bitRate">Output bit rate in kbps</param>
-		public LameMP3FileWriter(Stream outStream, WaveFormat format, int bitRate)
+		/// <param name="id3">Optional ID3 data block</param>
+		public LameMP3FileWriter(Stream outStream, WaveFormat format, int bitRate, ID3TagData id3 = null)
 			: base()
 		{
+			Loader.Init();
+			//if (!Loader.Initialized)
+			//	Loader.Initialized = false;
+
 			// sanity check
 			if (outStream == null)
 				throw new ArgumentNullException("outStream");
@@ -260,6 +402,9 @@ namespace NAudio.Lame
 
 			this._lame.BitRate = bitRate;
 
+			if (id3 != null)
+				ApplyID3Tag(id3);
+
 			this._lame.InitParams();
 		}
 
@@ -305,8 +450,8 @@ namespace NAudio.Lame
 		/// <summary>Output buffer, size determined by call to Lame.beInitStream</summary>
 		protected byte[] outBuffer;
 
-		long InputByteCount = 0;
-		long OutputByteCount = 0;
+		long _inputByteCount = 0;
+		long _outputByteCount = 0;
 
 		// encoder write functions, one for each supported input wave format
 		
@@ -351,11 +496,14 @@ namespace NAudio.Lame
 			if (rc > 0)
 			{
 				outStream.Write(outBuffer, 0, rc);
-				OutputByteCount += rc;
+				_outputByteCount += rc;
 			}
 
-			InputByteCount += inPosition;
+			_inputByteCount += inPosition;
 			inPosition = 0;
+
+			// report progress
+			RaiseProgress(false);
 		}
 		#endregion
 
@@ -410,7 +558,13 @@ namespace NAudio.Lame
 			// finalize compression
 			int rc = _lame.Flush(outBuffer, outBuffer.Length);
 			if (rc > 0)
+			{
 				outStream.Write(outBuffer, 0, rc);
+				_outputByteCount += rc;
+			}
+
+			// report progress
+			RaiseProgress(true);
 
 			// Cannot continue after flush, so clear output stream
 			if (disposeOutput)
@@ -441,6 +595,118 @@ namespace NAudio.Lame
 		public override long Seek(long offset, SeekOrigin origin)
 		{
 			throw new NotImplementedException();
+		}
+		#endregion
+
+		#region ID3 support
+		private void ApplyID3Tag(ID3TagData tag)
+		{
+			if (tag == null)
+				return;
+
+			if (!string.IsNullOrEmpty(tag.Title))
+				_lame.ID3SetTitle(tag.Title);
+			if (!string.IsNullOrEmpty(tag.Artist))
+				_lame.ID3SetArtist(tag.Artist);
+			if (!string.IsNullOrEmpty(tag.Album))
+				_lame.ID3SetAlbum(tag.Album);
+			if (!string.IsNullOrEmpty(tag.Year))
+				_lame.ID3SetYear(tag.Year);
+			if (!string.IsNullOrEmpty(tag.Comment))
+				_lame.ID3SetComment(tag.Comment);
+			if (!string.IsNullOrEmpty(tag.Genre))
+				_lame.ID3SetGenre(tag.Genre);
+			if (!string.IsNullOrEmpty(tag.Track))
+				_lame.ID3SetTrack(tag.Track);
+
+            if (!string.IsNullOrEmpty(tag.Subtitle))
+                _lame.ID3SetFieldValue(string.Format("TIT3={0}", tag.Subtitle));
+
+            if (!string.IsNullOrEmpty(tag.AlbumArtist))
+                _lame.ID3SetFieldValue(string.Format("TPE2={0}", tag.AlbumArtist));
+
+
+            if (tag.AlbumArt != null && tag.AlbumArt.Length > 0 && tag.AlbumArt.Length < 131072)
+				_lame.ID3SetAlbumArt(tag.AlbumArt);
+		}
+
+		private static Dictionary<int, string> _genres;
+		/// <summary>Dictionary of Genres supported by LAME's ID3 tag support</summary>
+		public static Dictionary<int, string> Genres
+		{
+			get
+			{
+				if (_genres == null)
+					_genres = LibMp3Lame.ID3GenreList();
+				return _genres;
+			}
+		}
+		#endregion
+
+		#region LAME library print hooks
+		/// <summary>Set output function for Error output</summary>
+		/// <param name="fn">Function to call for Error output</param>
+		public void SetErrorFunction(OutputHandler fn)
+		{
+			GetLameInstance().SetErrorFunc(t => fn(t));
+		}
+
+		/// <summary>Set output function for Debug output</summary>
+		/// <param name="fn">Function to call for Debug output</param>
+		public void SetDebugFunction(OutputHandler fn)
+		{
+			GetLameInstance().SetMsgFunc(t => fn(t));
+		}
+
+		/// <summary>Set output function for Message output</summary>
+		/// <param name="fn">Function to call for Message output</param>
+		public void SetMessageFunction(OutputHandler fn)
+		{
+			GetLameInstance().SetMsgFunc(t => fn(t));
+		}
+
+		/// <summary>Get configuration of LAME context, results passed to Message function</summary>
+		public void PrintLAMEConfig()
+		{
+			GetLameInstance().PrintConfig();
+		}
+
+		/// <summary>Get internal settings of LAME context, results passed to Message function</summary>
+		public void PrintLAMEInternals()
+		{
+			GetLameInstance().PrintInternals();
+		}
+		#endregion
+
+		#region Progress event
+		int _minProgressTime = 100;
+		/// <summary>Minimimum time between progress events in ms, or 0 for no limit</summary>
+		/// <remarks>Defaults to 100ms</remarks>
+		public int MinProgressTime
+		{
+			get { return _minProgressTime; }
+			set
+			{
+				_minProgressTime = Math.Max(0, value);
+			}
+		}
+
+		/// <summary>Called when data is written to the output file from Encode or Flush</summary>
+		public event ProgressHandler OnProgress;
+
+		DateTime _lastProgress = DateTime.Now;
+		/// <summary>Call any registered OnProgress handlers</summary>
+		/// <param name="finished">True if called at end of output</param>
+		protected void RaiseProgress(bool finished)
+		{
+			var timeDelta = DateTime.Now - _lastProgress;
+			if (finished || timeDelta.TotalMilliseconds >= _minProgressTime)
+			{
+				_lastProgress = DateTime.Now;
+				var prog = OnProgress;
+				if (prog != null)
+					prog(this, _inputByteCount, _outputByteCount, finished);
+			}
 		}
 		#endregion
 	}
