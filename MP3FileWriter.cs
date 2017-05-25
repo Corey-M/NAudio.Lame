@@ -596,41 +596,44 @@ namespace NAudio.Lame
 		{
 			throw new NotImplementedException();
 		}
-		#endregion
+        #endregion
 
-		#region ID3 support
-		private void ApplyID3Tag(ID3TagData tag)
-		{
-			if (tag == null)
-				return;
+        #region ID3 support
+        private void ApplyID3Tag(ID3TagData tag)
+        {
+            if (tag == null)
+                return;
 
-			if (!string.IsNullOrEmpty(tag.Title))
-				_lame.ID3SetTitle(tag.Title);
-			if (!string.IsNullOrEmpty(tag.Artist))
-				_lame.ID3SetArtist(tag.Artist);
-			if (!string.IsNullOrEmpty(tag.Album))
-				_lame.ID3SetAlbum(tag.Album);
-			if (!string.IsNullOrEmpty(tag.Year))
-				_lame.ID3SetYear(tag.Year);
-			if (!string.IsNullOrEmpty(tag.Comment))
-				_lame.ID3SetComment(tag.Comment);
-			if (!string.IsNullOrEmpty(tag.Genre))
-				_lame.ID3SetGenre(tag.Genre);
-			if (!string.IsNullOrEmpty(tag.Track))
-				_lame.ID3SetTrack(tag.Track);
+            if (!string.IsNullOrEmpty(tag.Title))
+                _lame.ID3SetTitle(tag.Title);
+            if (!string.IsNullOrEmpty(tag.Artist))
+                _lame.ID3SetArtist(tag.Artist);
+            if (!string.IsNullOrEmpty(tag.Album))
+                _lame.ID3SetAlbum(tag.Album);
+            if (!string.IsNullOrEmpty(tag.Year))
+                _lame.ID3SetYear(tag.Year);
+            if (!string.IsNullOrEmpty(tag.Comment))
+                _lame.ID3SetComment(tag.Comment);
+            if (!string.IsNullOrEmpty(tag.Genre))
+                _lame.ID3SetGenre(tag.Genre);
+            if (!string.IsNullOrEmpty(tag.Track))
+                _lame.ID3SetTrack(tag.Track);
 
             if (!string.IsNullOrEmpty(tag.Subtitle))
                 _lame.ID3SetFieldValue(string.Format("TIT3={0}", tag.Subtitle));
 
             if (!string.IsNullOrEmpty(tag.AlbumArtist))
                 _lame.ID3SetFieldValue(string.Format("TPE2={0}", tag.AlbumArtist));
-
+            
+            foreach(var userDefinedTag in tag.UserDefinedTags)
+                _lame.ID3SetFieldValue(string.Format("TXXX={0}", userDefinedTag));
 
             if (tag.AlbumArt != null && tag.AlbumArt.Length > 0 && tag.AlbumArt.Length < 131072)
 				_lame.ID3SetAlbumArt(tag.AlbumArt);
-		}
 
-		private static Dictionary<int, string> _genres;
+        }
+
+        private static Dictionary<int, string> _genres;
 		/// <summary>Dictionary of Genres supported by LAME's ID3 tag support</summary>
 		public static Dictionary<int, string> Genres
 		{
