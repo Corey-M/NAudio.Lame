@@ -30,6 +30,9 @@ namespace NAudio.Lame
         /// <summary>AlbumArtist (TPE2)</summary>
         public string AlbumArtist;
 
+        /// <summary>User defined text frames (TXXX) - Multiples are allowed as long as their description is unique (Format : "description=text")</summary>
+        public string[] UserDefinedTags;
+
         /// <summary>Album art - PNG, JPG or GIF file content</summary>
         public byte[] AlbumArt;
 	}
