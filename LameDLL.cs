@@ -10,6 +10,7 @@ namespace NAudio.Lame
 	public class LAMEVersion
 	{
 		/* generic LAME version */
+
 		/// <summary>LAME library major version</summary>
 		public int Major { get; private set; }
 		/// <summary>LAME library minor version</summary>
@@ -52,9 +53,7 @@ namespace NAudio.Lame
 		private LAMEVersion() { }
 	}
 
-	/// <summary>
-	/// Static class providing access to context-free LAME entry points
-	/// </summary>
+	/// <summary>Static class providing access to context-free LAME entry points</summary>
 	public static class LameDLL
 	{
 		static LameDLL()

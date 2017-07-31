@@ -1569,7 +1569,7 @@ namespace LameDLLWrap
 			//		unsigned char*      mp3buf,        /* pointer to encoded MP3 stream */
 			//		const int           mp3buf_size ); /* number of valid octets in this stream */
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern int lame_encode_bufer_long2(IntPtr context,
+			internal static extern int lame_encode_buffer_long2(IntPtr context,
 				[In]//[MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.I8)]
 				long[] buffer_l,
 				[In]//[MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.I8)]
