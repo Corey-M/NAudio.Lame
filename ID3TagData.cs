@@ -52,6 +52,7 @@ namespace NAudio.Lame
         public string AlbumArtist;
 
         /// <summary>User defined text frames (TXXX) - Multiples are allowed as long as their description is unique (Format : "description=text")</summary>
+        /// <remarks>If multiple tags with the same description are found, the last one found is the one used in the output Tag.</remarks>
         public string[] UserDefinedTags;
 
         /// <summary>Album art - PNG, JPG or GIF file content</summary>
