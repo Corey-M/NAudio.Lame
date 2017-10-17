@@ -599,11 +599,14 @@ namespace NAudio.Lame
         #endregion
 
         #region ID3 support
+        /// <summary>Setup ID3 tag with supplied information</summary>
+        /// <param name="tag">ID3 data</param>
         private void ApplyID3Tag(ID3TagData tag)
         {
             if (tag == null)
                 return;
 
+            // Apply standard ID3 fields
             if (!string.IsNullOrEmpty(tag.Title))
                 _lame.ID3SetTitle(tag.Title);
             if (!string.IsNullOrEmpty(tag.Artist))
@@ -619,16 +622,22 @@ namespace NAudio.Lame
             if (!string.IsNullOrEmpty(tag.Track))
                 _lame.ID3SetTrack(tag.Track);
 
+            // Apply standard ID3 fields that are not directly supported by LAME
             if (!string.IsNullOrEmpty(tag.Subtitle))
                 _lame.ID3SetFieldValue(string.Format("TIT3={0}", tag.Subtitle));
-
             if (!string.IsNullOrEmpty(tag.AlbumArtist))
                 _lame.ID3SetFieldValue(string.Format("TPE2={0}", tag.AlbumArtist));
-            
-            foreach(var userDefinedTag in tag.UserDefinedTags)
-                _lame.ID3SetFieldValue(string.Format("TXXX={0}", userDefinedTag));
 
-            if (tag.AlbumArt != null && tag.AlbumArt.Length > 0 && tag.AlbumArt.Length < 131072)
+            // Add user-defined tags if present
+            // NB: LAME handles the replacement of duplicates.
+            if (tag.UserDefinedTags?.Length > 0)
+            {
+                foreach (var userDefinedTag in tag.UserDefinedTags)
+                _lame.ID3SetFieldValue_Utf16(string.Format("TXXX={0}", userDefinedTag));
+            }
+
+            // Set the album art if supplied and within size limits
+            if (tag.AlbumArt?.Length > 0 && tag.AlbumArt.Length < 131072)
 				_lame.ID3SetAlbumArt(tag.AlbumArt);
 
         }
