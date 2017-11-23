@@ -37,6 +37,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+
+#if X64
+using size_t = System.UInt64;
+#else
+using size_t = System.UInt32;
+#endif
+
 namespace LameDLLWrap
 {
 //	using NAudio.Lame;
@@ -401,7 +408,7 @@ namespace LameDLLWrap
 
 		#region General Control Parameters
 		/// <summary>Enable analysis</summary>
-		public bool Anaylysis
+		public bool Analysis
 		{
 			get { return NativeMethods.lame_get_analysis(context); }
 			set { setter(NativeMethods.lame_set_analysis, value); }
@@ -409,14 +416,14 @@ namespace LameDLLWrap
 		/// <summary>Write VBR tag to MP3 file</summary>
 		public bool WriteVBRTag
 		{
-			get { return NativeMethods.lame_get_bWriteVbrTag(context) != 0; }
-			set { setter(NativeMethods.lame_set_bWriteVbrTag, value ? 1 : 0); }
+			get { return NativeMethods.lame_get_bWriteVbrTag(context); }
+			set { setter(NativeMethods.lame_set_bWriteVbrTag, value); }
 		}
 		/// <summary></summary>
 		public bool DecodeOnly
 		{
-			get { return NativeMethods.lame_get_decode_only(context) != 0; }
-			set { setter(NativeMethods.lame_set_decode_only, value ? 1 : 0); }
+			get { return NativeMethods.lame_get_decode_only(context); }
+			set { setter(NativeMethods.lame_set_decode_only, value); }
 		}
 		/// <summary>Encoding quality</summary>
 		public int Quality
@@ -650,12 +657,28 @@ namespace LameDLLWrap
 			return Math.Max(0, res);
 		}
 
+        /// <summary>Get the LAME VBR frame content</summary>
+        /// <returns>Byte array with VBR frame contents or null on error.</returns>
+        public byte[] GetLAMETagFrame()
+        {
+            byte[] buffer = new byte[1];
+            size_t frameSize = NativeMethods.lame_get_lametag_frame(context, buffer, 0);
+            if (frameSize == 0)
+                return null;
+            buffer = new byte[(int)frameSize];
+            size_t res = NativeMethods.lame_get_lametag_frame(context, buffer, frameSize);
+            if (res != frameSize)
+                return null;
+            return buffer;
+        }
+
 		#endregion
 
 		internal static class NativeMethods
 		{
 #if X64
 			const string libname = @"libmp3lame.64.dll";
+
 #else
 			const string libname = @"libmp3lame.32.dll";
 #endif
@@ -685,16 +708,42 @@ namespace LameDLLWrap
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern int lame_close(IntPtr context);
 
-			#endregion
 
-			#region LAME information
-			/*
+            /*
+             * OPTIONAL:
+             * lame_get_lametag_frame copies the final LAME-tag into 'buffer'.
+             * The function returns the number of bytes copied into buffer, or
+             * the required buffer size, if the provided buffer is too small.
+             * Function failed, if the return value is larger than 'size'!
+             * Make sure lame_encode flush has been called before calling this function.
+             * NOTE:
+             * if VBR  tags are turned off by the user, or turned off by LAME,
+             * this call does nothing and returns 0.
+             * NOTE:
+             * LAME inserted an empty frame in the beginning of mp3 audio data,
+             * which you have to replace by the final LAME-tag frame after encoding.
+             * In case there is no ID3v2 tag, usually this frame will be the very first
+             * data in your mp3 file. If you put some other leading data into your
+             * file, you'll have to do some bookkeeping about where to write this buffer.
+             */
+            // int size_t CDECL lame_get_lametag_frame(const lame_global_flags *, unsigned char* buffer, size_t size);
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern size_t lame_get_lametag_frame(
+                IntPtr context,
+                [In, Out] byte[] buffer,
+                [In] size_t size
+                );
+
+            #endregion
+
+            #region LAME information
+            /*
 			 * OPTIONAL:
 			 * get the version number, in a string. of the form:
 			 * "3.63 (beta)" or just "3.63".
 			 */
-			// const char*  CDECL get_lame_version       ( void );
-			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            // const char*  CDECL get_lame_version       ( void );
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			internal static extern string get_lame_version();
 			// const char*  CDECL get_lame_short_version ( void );
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
@@ -811,17 +860,17 @@ namespace LameDLLWrap
 			// int CDECL lame_set_bWriteVbrTag(lame_global_flags *, int);
 			// int CDECL lame_get_bWriteVbrTag(const lame_global_flags *);
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern int lame_set_bWriteVbrTag(IntPtr context, [MarshalAs(UnmanagedType.Bool)] int value);
+			internal static extern int lame_set_bWriteVbrTag(IntPtr context, [MarshalAs(UnmanagedType.Bool)] bool value);
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern int lame_get_bWriteVbrTag(IntPtr context);
+			internal static extern bool lame_get_bWriteVbrTag(IntPtr context);
 
 			/* 1=decode only.  use lame/mpglib to convert mp3/ogg to wav.  default=0 */
 			// int CDECL lame_set_decode_only(lame_global_flags *, int);
 			// int CDECL lame_get_decode_only(const lame_global_flags *);
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern int lame_set_decode_only(IntPtr context, [MarshalAs(UnmanagedType.Bool)] int value);
+			internal static extern int lame_set_decode_only(IntPtr context, [MarshalAs(UnmanagedType.Bool)] bool value);
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern int lame_get_decode_only(IntPtr context);
+			internal static extern bool lame_get_decode_only(IntPtr context);
 
 			/*
 			  internal algorithm selection.  True quality is determined by the bitrate
@@ -1836,7 +1885,7 @@ namespace LameDLLWrap
 			// NOTE:
 			// This function does nothing, if user/LAME disabled ID3v1 tag
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern int id3tag_get_id3v1_tag(IntPtr context, [In, Out]byte[] buffer, int size);
+			internal static extern int lame_get_id3v1_tag(IntPtr context, [In, Out]byte[] buffer, int size);
 
 			// lame_get_id3v2_tag copies ID3v2 tag into buffer.
 			// Function returns number of bytes copied into buffer, or number
@@ -1845,18 +1894,18 @@ namespace LameDLLWrap
 			// NOTE:
 			// This function does nothing, if user/LAME disabled ID3v2 tag
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern int id3tag_get_id3v2_tag(IntPtr context, [In, Out]byte[] buffer, int size);
+			internal static extern int lame_get_id3v2_tag(IntPtr context, [In, Out]byte[] buffer, int size);
 
 			// normally lame_init_param writes ID3v2 tags into the audio stream
 			// Call lame_set_write_id3tag_automatic(gfp, 0) before lame_init_param 
 			// to turn off this behaviour and get ID3v2 tag with above function 
 			// write it yourself into your file.
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern void id3tag_set_write_id3tag_automatic(IntPtr context, bool value);
+			internal static extern void lame_set_write_id3tag_automatic(IntPtr context, bool value);
 
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			[return: MarshalAs(UnmanagedType.Bool)]
-			internal static extern bool id3tag_get_write_id3tag_automatic(IntPtr context);
+			internal static extern bool lame_get_write_id3tag_automatic(IntPtr context);
 			#endregion
 		}
 
@@ -2062,11 +2111,11 @@ namespace LameDLLWrap
 
 		public byte[] ID3GetID3v1Tag()
 		{
-			int len = NativeMethods.id3tag_get_id3v1_tag(context, new byte[] { }, 0);
+			int len = NativeMethods.lame_get_id3v1_tag(context, new byte[] { }, 0);
 			if (len < 1)
 				return null;
 			byte[] res = new byte[len];
-			int rc = NativeMethods.id3tag_get_id3v1_tag(context, res, len);
+			int rc = NativeMethods.lame_get_id3v1_tag(context, res, len);
 			if (rc != len)
 				return null;
 			return res;
@@ -2074,11 +2123,11 @@ namespace LameDLLWrap
 
 		public byte[] ID3GetID3v2Tag()
 		{
-			int len = NativeMethods.id3tag_get_id3v2_tag(context, new byte[] { }, 0);
+			int len = NativeMethods.lame_get_id3v2_tag(context, new byte[] { }, 0);
 			if (len < 1)
 				return null;
 			byte[] res = new byte[len];
-			int rc = NativeMethods.id3tag_get_id3v2_tag(context, res, len);
+			int rc = NativeMethods.lame_get_id3v2_tag(context, res, len);
 			if (rc != len)
 				return null;
 			return res;
@@ -2086,8 +2135,8 @@ namespace LameDLLWrap
 
 		public bool ID3WriteTagAutomatic
 		{
-			get { return NativeMethods.id3tag_get_write_id3tag_automatic(context); }
-			set { NativeMethods.id3tag_set_write_id3tag_automatic(context, value); }
+			get { return NativeMethods.lame_get_write_id3tag_automatic(context); }
+			set { NativeMethods.lame_set_write_id3tag_automatic(context, value); }
 		}
 		#endregion
 	}

@@ -566,18 +566,96 @@ namespace NAudio.Lame
 			// report progress
 			RaiseProgress(true);
 
+            if (_lame.WriteVBRTag)
+            {
+                UpdateLameTagFrame();
+            }
+
 			// Cannot continue after flush, so clear output stream
 			if (disposeOutput)
 				outStream.Dispose();
 			outStream = null;
 		}
 
-		/// <summary>Reading not supported.  Throws NotImplementedException.</summary>
-		/// <param name="buffer"></param>
-		/// <param name="offset"></param>
-		/// <param name="count"></param>
-		/// <returns></returns>
-		public override int Read(byte[] buffer, int offset, int count)
+        /// <summary>Get the VBR tag frame from LAME and write to stream if possible</summary>
+        /// <returns>True if tag frame written to stream, else false</returns>
+        /// <remarks>Based on the LAME source: https://sourceforge.net/p/lame/svn/HEAD/tree/trunk/lame/Dll/BladeMP3EncDLL.c#l816 </remarks>
+        private bool UpdateLameTagFrame()
+        {
+            if (outStream == null || !outStream.CanSeek || !outStream.CanRead || !outStream.CanWrite)
+                return false;
+
+            long strmPos = outStream.Position;
+            try
+            {
+                byte[] frame = _lame.GetLAMETagFrame();
+                if (frame == null || frame.Length < 4)
+                    return false;
+
+                if (SkipId3v2(frame.Length) != 0)
+                    return false;
+
+                outStream.Write(frame, 0, frame.Length);
+
+                return true;
+            }
+            finally
+            {
+                outStream.Position = strmPos;
+            }
+        }
+
+        /// <summary>Position the output stream at the start of the first frame after the ID3 frame if any.</summary>
+        /// <param name="framesize">Size of frame</param>
+        /// <returns>0 on success, non-zero on failure</returns>
+        /// <remarks>Base algorithm copied from the LAME source: https://sourceforge.net/p/lame/svn/HEAD/tree/trunk/lame/Dll/BladeMP3EncDLL.c#l768 </remarks>
+        private int SkipId3v2(int framesize)
+        {
+            try
+            {
+                outStream.Position = 0;
+            }
+            catch { return -2; }
+            byte[] buffer = new byte[10];
+            int rc = outStream.Read(buffer, 0, 10);
+            if (rc != 10)
+                return -3;
+            int id3v2TagSize = 0;
+            if (buffer[0] == (byte)'I' || buffer[1] == (byte)'D' || buffer[2] == (byte)'3')
+            {
+                id3v2TagSize =
+                    (
+                        (((int)buffer[6] & 0x7f) << 21) |
+                        (((int)buffer[7] & 0x7f) << 14) |
+                        (((int)buffer[8] & 0x7f) << 7) |
+                        ((int)buffer[9] & 0x7f)
+                    ) + 10;
+            }
+            outStream.Position = id3v2TagSize;
+
+            // maybeSyncWord
+            rc = outStream.Read(buffer, 0, 4);
+            if (rc != 4 || buffer[0] != 0xFF || (buffer[1] & 0xE0) != 0xE0)
+                return -1;
+
+            outStream.Position = id3v2TagSize + framesize;
+
+            // maybeSyncWord
+            rc = outStream.Read(buffer, 0, 4);
+            if (rc != 4 || buffer[0] != 0xFF || (buffer[1] & 0xE0) != 0xE0)
+                return -1;
+
+            outStream.Position = id3v2TagSize;
+            return 0;
+        }
+
+
+        /// <summary>Reading not supported.  Throws NotImplementedException.</summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public override int Read(byte[] buffer, int offset, int count)
 		{
 			throw new NotImplementedException();
 		}
