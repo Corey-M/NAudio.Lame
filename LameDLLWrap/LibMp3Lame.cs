@@ -26,8 +26,8 @@
 #region Attributions
 //
 // Contents of the LibMp3Lame.NativeMethods class and associated enumerations 
-// are directly based on the lame.h v1.190, available at:
-//                http://lame.cvs.sourceforge.net/viewvc/lame/lame/include/lame.h?revision=1.190&content-type=text%2Fplain
+// are directly based on the lame.h available at:
+//                https://sourceforge.net/p/lame/svn/6430/tree/trunk/lame/include/lame.h
 //
 // Source lines and comments included where useful/possible.
 //
@@ -1873,6 +1873,11 @@ namespace LameDLLWrap
 			[return: MarshalAs(UnmanagedType.Bool)]
 			internal static extern bool id3tag_set_fieldvalue(IntPtr context, string value);
 
+            // experimental
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            internal static extern bool id3tag_set_fieldvalue_utf16(IntPtr context, [MarshalAs(UnmanagedType.LPWStr)]string value);
+
 			// return non-zero result if image type is invalid
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			[return: MarshalAs(UnmanagedType.Bool)]
@@ -2093,10 +2098,17 @@ namespace LameDLLWrap
 			return NativeMethods.id3tag_set_genre(context, genreIndex.ToString());
 		}
 
-		public bool ID3SetFieldValue(string value)
-		{
-			return !NativeMethods.id3tag_set_fieldvalue(context, value);
-		}
+        public bool ID3SetFieldValue(string value)
+        {
+            if (Encoding.UTF8.GetByteCount(value) != value.Length)
+                return !NativeMethods.id3tag_set_fieldvalue_utf16(context, value);
+            return !NativeMethods.id3tag_set_fieldvalue(context, value);
+        }
+
+        public bool ID3SetFieldValueUtf16(string value)
+        {
+            return !NativeMethods.id3tag_set_fieldvalue_utf16(context, value);
+        }
 
 		/// <summary>Set albumart of ID3 tag</summary>
 		/// <param name="image">raw image file data</param>

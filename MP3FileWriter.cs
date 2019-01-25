@@ -29,6 +29,7 @@ using System.Runtime.InteropServices;
 using NAudio.Wave;
 using LameDLLWrap;
 using System.Collections.Generic;
+using System.Text;
 
 namespace NAudio.Lame
 {
@@ -278,15 +279,15 @@ namespace NAudio.Lame
 
 			// check for unsupported wave formats
 			if (format.Channels != 1 && format.Channels != 2)
-				throw new ArgumentException(string.Format("Unsupported number of channels {0}", format.Channels), "format");
+				throw new ArgumentException($"Unsupported number of channels {format.Channels}", "format");
 			if (format.Encoding != WaveFormatEncoding.Pcm && format.Encoding != WaveFormatEncoding.IeeeFloat)
-				throw new ArgumentException(string.Format("Unsupported encoding format {0}", format.Encoding.ToString()), "format");
+				throw new ArgumentException($"Unsupported encoding format {format.Encoding}", "format");
 			if (format.Encoding == WaveFormatEncoding.Pcm && format.BitsPerSample != 16)
-				throw new ArgumentException(string.Format("Unsupported PCM sample size {0}", format.BitsPerSample), "format");
+				throw new ArgumentException($"Unsupported PCM sample size {format.BitsPerSample}", "format");
 			if (format.Encoding == WaveFormatEncoding.IeeeFloat && format.BitsPerSample != 32)
-				throw new ArgumentException(string.Format("Unsupported Float sample size {0}", format.BitsPerSample), "format");
+				throw new ArgumentException($"Unsupported Float sample size {format.BitsPerSample}", "format");
 			if (format.SampleRate < 8000 || format.SampleRate > 48000)
-				throw new ArgumentException(string.Format("Unsupported Sample Rate {0}", format.SampleRate), "format");
+				throw new ArgumentException($"Unsupported Sample Rate {format.SampleRate}", "format");
 
 			// select encoder function that matches data format
 			if (format.Encoding == WaveFormatEncoding.Pcm)
@@ -359,15 +360,15 @@ namespace NAudio.Lame
 
 			// check for unsupported wave formats
 			if (format.Channels != 1 && format.Channels != 2)
-				throw new ArgumentException(string.Format("Unsupported number of channels {0}", format.Channels), "format");
+				throw new ArgumentException($"Unsupported number of channels {format.Channels}", "format");
 			if (format.Encoding != WaveFormatEncoding.Pcm && format.Encoding != WaveFormatEncoding.IeeeFloat)
-				throw new ArgumentException(string.Format("Unsupported encoding format {0}", format.Encoding.ToString()), "format");
+				throw new ArgumentException($"Unsupported encoding format {format.Encoding}", "format");
 			if (format.Encoding == WaveFormatEncoding.Pcm && format.BitsPerSample != 16)
-				throw new ArgumentException(string.Format("Unsupported PCM sample size {0}", format.BitsPerSample), "format");
+				throw new ArgumentException($"Unsupported PCM sample size {format.BitsPerSample}", "format");
 			if (format.Encoding == WaveFormatEncoding.IeeeFloat && format.BitsPerSample != 32)
-				throw new ArgumentException(string.Format("Unsupported Float sample size {0}", format.BitsPerSample), "format");
+				throw new ArgumentException($"Unsupported Float sample size {format.BitsPerSample}", "format");
 			if (format.SampleRate < 8000 || format.SampleRate > 48000)
-				throw new ArgumentException(string.Format("Unsupported Sample Rate {0}", format.SampleRate), "format");
+				throw new ArgumentException($"Unsupported Sample Rate {format.SampleRate}", "format");
 
 			// select encoder function that matches data format
 			if (format.Encoding == WaveFormatEncoding.Pcm)
@@ -702,16 +703,16 @@ namespace NAudio.Lame
 
             // Apply standard ID3 fields that are not directly supported by LAME
             if (!string.IsNullOrEmpty(tag.Subtitle))
-                _lame.ID3SetFieldValue(string.Format("TIT3={0}", tag.Subtitle));
+                _lame.ID3SetFieldValue($"TIT3={tag.Subtitle}");
             if (!string.IsNullOrEmpty(tag.AlbumArtist))
-                _lame.ID3SetFieldValue(string.Format("TPE2={0}", tag.AlbumArtist));
+                _lame.ID3SetFieldValue($"TPE2={tag.AlbumArtist}");
 
             // Add user-defined tags if present
             // NB: LAME handles the replacement of duplicates.
             if (tag.UserDefinedTags?.Length > 0)
             {
                 foreach (var userDefinedTag in tag.UserDefinedTags)
-                    _lame.ID3SetFieldValue(string.Format("TXXX={0}", userDefinedTag));
+                    _lame.ID3SetFieldValue($"TXXX={userDefinedTag}");
             }
 
             // Set the album art if supplied and within size limits
