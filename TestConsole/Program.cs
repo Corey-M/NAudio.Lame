@@ -29,8 +29,8 @@ using NAudio.Wave;
 namespace TestConsole
 {
     class Program
-	{
-		static void Main(string[] args)
+    {
+        static void Main(string[] args)
         {
             TranscodingTest();
             ID3Test();
@@ -43,18 +43,26 @@ namespace TestConsole
         }
 
         static void ID3Test()
-		{
-			ID3TagData tag = new ID3TagData 
-			{
- 				Title = "A Test File",
-				Artist = "Microsoft",
-				Album = "Windows 7",
-				Year = "2009",
-				Comment = "Test only.",
-				Genre = LameMP3FileWriter.Genres[1],
-				Subtitle = "From the Calligraphy theme",
-				AlbumArt = System.IO.File.ReadAllBytes(@"disco.png")
-			};
+        {
+            ID3TagData tag = new ID3TagData
+            {
+                Title = "A Test File",
+                Artist = "Microsoft",
+                Album = "Windows 7",
+                Year = "2009",
+                Comment = "Test only.",
+                Genre = LameMP3FileWriter.Genres[1],
+                Subtitle = "From the Calligraphy theme",
+                AlbumArt = System.IO.File.ReadAllBytes(@"disco.png")
+            };
+
+            tag.UserDefinedTags = new[]
+            {
+                "udf1=First UDF added",
+                "udf2=Second UDF",
+                "unicode1=Unicode currency symbols: ₠ ₡ ₢ ₣ ₤ ₥ ₦ ₧ ₨ ₩ ₪ ₫"
+            };
+
             Codec.WaveToMP3("test.wav", "test_id3.mp3", tag);
         }
     }
@@ -81,10 +89,18 @@ namespace TestConsole
         /// <remarks>Uses NAudio to read, can read any file compatible with <see cref="NAudio.Wave.AudioFileReader"/></remarks>
         public static void WaveToMP3(string waveFileName, string mp3FileName, ID3TagData tag, int bitRate = 128)
         {
+            byte[] tagBytes = null;
+
             using (var reader = new AudioFileReader(waveFileName))
             using (var writer = new LameMP3FileWriter(mp3FileName, reader.WaveFormat, 128, tag))
             {
                 reader.CopyTo(writer);
+                tagBytes = writer.GetID3v2TagBytes();
+            }
+
+            if (tagBytes != null)
+            {
+                var dectag = ID3Decoder.Decode(tagBytes);
             }
         }
 
