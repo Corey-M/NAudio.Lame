@@ -1876,10 +1876,10 @@ namespace LameDLLWrap
             // experimental
             [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool id3tag_set_fieldvalue_utf16(IntPtr context, [MarshalAs(UnmanagedType.LPWStr)]string value);
+            internal static extern bool id3tag_set_fieldvalue_utf16(IntPtr context, byte[] value);
 
-			// return non-zero result if image type is invalid
-			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            // return non-zero result if image type is invalid
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 			[return: MarshalAs(UnmanagedType.Bool)]
 			internal static extern bool id3tag_set_albumart(IntPtr context, [In]byte[] image, int size);
 
@@ -2100,22 +2100,20 @@ namespace LameDLLWrap
 
         public bool ID3SetFieldValue(string value)
         {
-            if (Encoding.UTF8.GetByteCount(value) != value.Length)
-                return !NativeMethods.id3tag_set_fieldvalue_utf16(context, value);
-            return !NativeMethods.id3tag_set_fieldvalue(context, value);
+            if (Encoding.UTF8.GetByteCount(value) == value.Length)
+                return !NativeMethods.id3tag_set_fieldvalue(context, value);
+
+            // Value is Unicode.  Encode as UCS2 with BOM and terminator.
+            byte[] data = UCS2.GetBytes(value);
+            return ! NativeMethods.id3tag_set_fieldvalue_utf16(context, data);
         }
 
-        public bool ID3SetFieldValueUtf16(string value)
-        {
-            return !NativeMethods.id3tag_set_fieldvalue_utf16(context, value);
-        }
-
-		/// <summary>Set albumart of ID3 tag</summary>
-		/// <param name="image">raw image file data</param>
-		/// <returns>True if successful, else false</returns>
-		/// <remarks>Supported formats: JPG, PNG, GIF.
-		/// Max image size: 128KB</remarks>
-		public bool ID3SetAlbumArt(byte[] image)
+        /// <summary>Set albumart of ID3 tag</summary>
+        /// <param name="image">raw image file data</param>
+        /// <returns>True if successful, else false</returns>
+        /// <remarks>Supported formats: JPG, PNG, GIF.
+        /// Max image size: 128KB</remarks>
+        public bool ID3SetAlbumArt(byte[] image)
 		{
 			bool res = NativeMethods.id3tag_set_albumart(context, image, image.Length);
 			return !res;
