@@ -718,8 +718,21 @@ namespace NAudio.Lame
             // Set the album art if supplied and within size limits
             if (tag.AlbumArt?.Length > 0 && tag.AlbumArt.Length < 131072)
 				_lame.ID3SetAlbumArt(tag.AlbumArt);
-
         }
+
+        /// <summary>
+        /// Get the bytes of the ID3v1 tag written to the file
+        /// </summary>
+        /// <returns>Byte array with ID3v1 tag data if available, else null</returns>
+        public byte[] GetID3v1TagBytes()
+            => _lame.ID3GetID3v1Tag();
+
+        /// <summary>
+        /// Get the bytes of the ID3v2 tag written to the file
+        /// </summary>
+        /// <returns>Byte array with ID3v2 tag data if supplied, else null</returns>
+        public byte[] GetID3v2TagBytes()
+            => _lame.ID3GetID3v2Tag();
 
         private static Dictionary<int, string> _genres;
 		/// <summary>Dictionary of Genres supported by LAME's ID3 tag support</summary>

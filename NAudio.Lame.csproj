@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ID3Decoder.cs" />
     <Compile Include="ID3TagData.cs" />
     <Compile Include="LameDLL.cs" />
     <Compile Include="Loader.cs" />
