@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>NAudio.Lame</id>
-    <version>1.0.8</version>
+    <version>1.0.9</version>
     <authors>Corey Murtagh</authors>
     <owners>Corey Murtagh</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -10,7 +10,9 @@
     <projectUrl>https://github.com/Corey-M/NAudio.Lame</projectUrl>
     <description>Uses libmp3lame.dll from the Lame project to provide MP3 encoding support to NAudio.  Both 64-bit and 32-bit versions of libmp3lame.dll are provided, with platform detection to determine which to use.</description>
     <summary>Implements MP3 writing for NAudio using libmp3lame.</summary>
-    <releaseNotes>v1.0.8 Added support for Unicode text in ID3TagData.UserDefinedTags.
+    <releaseNotes>v1.0.9 Fixed Unicode bug, added Unicode comments, added unit tests.
+    
+v1.0.8 Added support for Unicode text in ID3TagData.UserDefinedTags.
 
 v1.0.7 Now writes VBR header at end of encoding if output stream supports updating.
 
