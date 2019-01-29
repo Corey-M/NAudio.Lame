@@ -142,9 +142,6 @@ namespace NAudio.Lame
 			Loader.Init();
 		}
 
-		// Ensure that the Loader is initialized correctly
-		//static bool init_loader = Loader.Initialized;
-
 		/// <summary>Union class for fast buffer conversion</summary>
 		/// <remarks>
 		/// <para>
@@ -441,9 +438,14 @@ namespace NAudio.Lame
 			return _lame;
 		}
 
-		#region Internal encoder operations
-		// Input buffer
-		private ArrayUnion inBuffer = null;
+        /// <summary>
+        /// Retrieve the last captured result from calling a LAME dll method
+        /// </summary>
+        public int LastLameResult => _lame.LastLameError;
+
+        #region Internal encoder operations
+        // Input buffer
+        private ArrayUnion inBuffer = null;
 
 		/// <summary>Current write position in input buffer</summary>
 		private int inPosition;
@@ -709,12 +711,10 @@ namespace NAudio.Lame
 
             // Add user-defined tags if present
             // NB: LAME handles the replacement of duplicates.
-            if (tag.UserDefinedTags?.Length > 0)
+            foreach (var kv in tag.UserDefinedText)
             {
-                foreach (var userDefinedTag in tag.UserDefinedTags)
-                    _lame.ID3SetFieldValue($"TXXX={userDefinedTag}");
+                _lame.ID3SetFieldValue($"TXXX={kv.Key}={kv.Value}");
             }
-
             // Set the album art if supplied and within size limits
             if (tag.AlbumArt?.Length > 0 && tag.AlbumArt.Length < 131072)
 				_lame.ID3SetAlbumArt(tag.AlbumArt);

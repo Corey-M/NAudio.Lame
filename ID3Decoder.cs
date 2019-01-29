@@ -108,7 +108,6 @@ namespace NAudio.Lame
             }
 
             // load all frames from the tag buffer
-            var userDefined = new List<string>();
             int frameSize = 0;
             for (var frame = ID3FrameData.ReadFrame(bytes, pos, out frameSize); frameSize > 0 && frame != null; frame = ID3FrameData.ReadFrame(bytes, pos, out frameSize))
             {
@@ -144,7 +143,7 @@ namespace NAudio.Lame
                     case "TXXX":
                     {
                         var udt = frame.ParseUserDefinedText();
-                        userDefined.Add($"{udt.Key}={udt.Value}");
+                        res.UserDefinedText[udt.Key] = udt.Value;
                         break;
                     }
                     case "APIC":
@@ -159,10 +158,6 @@ namespace NAudio.Lame
 
                 pos += frameSize;
             }
-
-            // add all User-Defined Text (TXXX) frames and return
-            if (userDefined.Count > 0)
-                res.UserDefinedTags = userDefined.ToArray();
 
             return res;
         }

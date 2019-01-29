@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LameDLLWrap", "LameDLLWrap\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsole", "TestConsole\TestConsole.csproj", "{872DF592-2993-4985-ABCE-996875046A3B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lame.Tests", "Lame.Tests\Lame.Tests.csproj", "{9F60C36F-6D45-45B3-9A25-207D6DF95D8B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,8 +52,23 @@ Global
 		{872DF592-2993-4985-ABCE-996875046A3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{872DF592-2993-4985-ABCE-996875046A3B}.Release|x64.ActiveCfg = Debug|Any CPU
 		{872DF592-2993-4985-ABCE-996875046A3B}.Release|x86.ActiveCfg = Release|Any CPU
+		{9F60C36F-6D45-45B3-9A25-207D6DF95D8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F60C36F-6D45-45B3-9A25-207D6DF95D8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F60C36F-6D45-45B3-9A25-207D6DF95D8B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9F60C36F-6D45-45B3-9A25-207D6DF95D8B}.Debug|x64.Build.0 = Debug|Any CPU
+		{9F60C36F-6D45-45B3-9A25-207D6DF95D8B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9F60C36F-6D45-45B3-9A25-207D6DF95D8B}.Debug|x86.Build.0 = Debug|Any CPU
+		{9F60C36F-6D45-45B3-9A25-207D6DF95D8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F60C36F-6D45-45B3-9A25-207D6DF95D8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F60C36F-6D45-45B3-9A25-207D6DF95D8B}.Release|x64.ActiveCfg = Release|Any CPU
+		{9F60C36F-6D45-45B3-9A25-207D6DF95D8B}.Release|x64.Build.0 = Release|Any CPU
+		{9F60C36F-6D45-45B3-9A25-207D6DF95D8B}.Release|x86.ActiveCfg = Release|Any CPU
+		{9F60C36F-6D45-45B3-9A25-207D6DF95D8B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {11C30FCE-B0E0-45C3-93F2-50F7DDB65ABE}
 	EndGlobalSection
 EndGlobal

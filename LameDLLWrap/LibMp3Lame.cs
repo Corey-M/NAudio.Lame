@@ -1853,12 +1853,14 @@ namespace LameDLLWrap
 			internal static extern void id3tag_set_year(IntPtr context, string year);
 
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern void id3tag_set_comment(IntPtr context, string comment);
+			internal static extern int id3tag_set_comment(IntPtr context, string comment);
+
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int id3tag_set_comment_utf16(IntPtr context, [MarshalAs(UnmanagedType.LPStr)]string lang, byte[] description, byte[] text);
 
 			// return -1 result if track number is out of ID3v1 range and ignored for ID3v1
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			[return: MarshalAs(UnmanagedType.Bool)]
-			internal static extern bool id3tag_set_track(IntPtr context, string track);
+			internal static extern int id3tag_set_track(IntPtr context, string track);
 
 			// return non-zero result if genre name or number is invalid
 			// result 0: OK
@@ -1870,18 +1872,15 @@ namespace LameDLLWrap
 
 			// return non-zero result if field name is invalid
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			[return: MarshalAs(UnmanagedType.Bool)]
-			internal static extern bool id3tag_set_fieldvalue(IntPtr context, string value);
+			internal static extern int id3tag_set_fieldvalue(IntPtr context, string value);
 
             // experimental
             [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-            [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool id3tag_set_fieldvalue_utf16(IntPtr context, byte[] value);
+            internal static extern int id3tag_set_fieldvalue_utf16(IntPtr context, byte[] value);
 
             // return non-zero result if image type is invalid
             [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			[return: MarshalAs(UnmanagedType.Bool)]
-			internal static extern bool id3tag_set_albumart(IntPtr context, [In]byte[] image, int size);
+			internal static extern int id3tag_set_albumart(IntPtr context, [In]byte[] image, int size);
 
 			// lame_get_id3v1_tag copies ID3v1 tag into buffer.
 			// Function returns number of bytes copied into buffer, or number
@@ -1909,8 +1908,8 @@ namespace LameDLLWrap
 			internal static extern void lame_set_write_id3tag_automatic(IntPtr context, bool value);
 
 			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			[return: MarshalAs(UnmanagedType.Bool)]
-			internal static extern bool lame_get_write_id3tag_automatic(IntPtr context);
+            [return: MarshalAs(UnmanagedType.Bool)]
+            internal static extern bool lame_get_write_id3tag_automatic(IntPtr context);
 			#endregion
 		}
 
@@ -2078,19 +2077,24 @@ namespace LameDLLWrap
 			NativeMethods.id3tag_set_year(context, year.ToString());
 		}
 
-		public void ID3SetComment(string comment)
+		public bool ID3SetComment(string comment)
 		{
-			NativeMethods.id3tag_set_comment(context, comment);
+            if (Encoding.UTF8.GetByteCount(comment) == comment.Length)
+                return CheckResult(NativeMethods.id3tag_set_comment(context, comment));
+
+            // Comment is Unicode.  Encode as UCS2 with BOM and terminator.
+            byte[] data = UCS2.GetBytes(comment);
+            return CheckResult(NativeMethods.id3tag_set_comment_utf16(context, "zxx", (byte[])null, data));
 		}
 
 		public bool ID3SetTrack(string track)
 		{
-			return !NativeMethods.id3tag_set_track(context, track);
+            return CheckResult(NativeMethods.id3tag_set_track(context, track));
 		}
 
-		public int ID3SetGenre(string genre)
+		public bool ID3SetGenre(string genre)
 		{
-			return NativeMethods.id3tag_set_genre(context, genre);
+            return CheckResult(NativeMethods.id3tag_set_genre(context, genre));
 		}
 
 		public int ID3SetGenre(int genreIndex)
@@ -2101,11 +2105,11 @@ namespace LameDLLWrap
         public bool ID3SetFieldValue(string value)
         {
             if (Encoding.UTF8.GetByteCount(value) == value.Length)
-                return !NativeMethods.id3tag_set_fieldvalue(context, value);
+                return CheckResult(NativeMethods.id3tag_set_fieldvalue(context, value));
 
             // Value is Unicode.  Encode as UCS2 with BOM and terminator.
             byte[] data = UCS2.GetBytes(value);
-            return ! NativeMethods.id3tag_set_fieldvalue_utf16(context, data);
+            return CheckResult(NativeMethods.id3tag_set_fieldvalue_utf16(context, data));
         }
 
         /// <summary>Set albumart of ID3 tag</summary>
@@ -2115,8 +2119,7 @@ namespace LameDLLWrap
         /// Max image size: 128KB</remarks>
         public bool ID3SetAlbumArt(byte[] image)
 		{
-			bool res = NativeMethods.id3tag_set_albumart(context, image, image.Length);
-			return !res;
+			return CheckResult(NativeMethods.id3tag_set_albumart(context, image, image.Length));
 		}
 
 		public byte[] ID3GetID3v1Tag()
@@ -2148,6 +2151,35 @@ namespace LameDLLWrap
 			get { return NativeMethods.lame_get_write_id3tag_automatic(context); }
 			set { NativeMethods.lame_set_write_id3tag_automatic(context, value); }
 		}
-		#endregion
-	}
+        #endregion
+
+        #region Result value handling
+        private int _lastLameError = 0;
+        
+        /// <summary>
+        /// Last result value from calling a number of different DLL entry points.
+        /// </summary>
+        public int LastLameError => _lastLameError;
+
+        /// <summary>
+        /// Check success lf LAME call returning BOOL, saving copy to <paramref name="save"/>.
+        /// </summary>
+        /// <param name="result">Result value to test.</param>
+        /// <param name="save">Output int to copy result value to.</param>
+        /// <returns>True if result is 0 (LAME_NOERROR), else false.</returns>
+        private bool CheckSuccess(int result, out int save)
+        {
+            save = result;
+            return result == 0;
+        }
+
+        /// <summary>
+        /// Check success of LAME call returning BOOL, updating <see cref="LastLameError"/> property.
+        /// </summary>
+        /// <param name="result">Return value to test.</param>
+        /// <returns>True if result is 0 (LAME_NOERROR), else false.</returns>
+        private bool CheckResult(int result)
+            => CheckSuccess(result, out _lastLameError);
+        #endregion
+    }
 }

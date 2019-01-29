@@ -63,9 +63,13 @@
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <EmbeddedResource Include="LameDLLWrap\bin\x64\Release\LameDLLWrap.dll" />
     <EmbeddedResource Include="LameDLLWrap\bin\x86\Release\LameDLLWrap.dll" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <EmbeddedResource Include="LameDLLWrap\bin\x64\Debug\LameDLLWrap.dll" />
+    <EmbeddedResource Include="LameDLLWrap\bin\x86\Debug\LameDLLWrap.dll" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">

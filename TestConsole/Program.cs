@@ -56,12 +56,12 @@ namespace TestConsole
                 AlbumArt = System.IO.File.ReadAllBytes(@"disco.png")
             };
 
-            tag.UserDefinedTags = new[]
+            tag.SetUDT(new[]
             {
                 "udf1=First UDF added",
                 "udf2=Second UDF",
                 "unicode1=Unicode currency symbols: ₠ ₡ ₢ ₣ ₤ ₥ ₦ ₧ ₨ ₩ ₪ ₫"
-            };
+            });
 
             Codec.WaveToMP3("test.wav", "test_id3.mp3", tag);
         }

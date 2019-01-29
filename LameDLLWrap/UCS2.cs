@@ -54,13 +54,13 @@ namespace LameDLLWrap
 
             if (length >= 2)
             {
-                if (bytes[0] == 0xFF && bytes[1] == 0xFE)
+                if (bytes[offset] == 0xFF && bytes[offset + 1] == 0xFE)
                 {
                     // Content is a little-endian Unicode string.  Use standard Unicode encoder.
                     offset += 2;
                     length -= 2;
                 }
-                else if (bytes[0] == 0xFE && bytes[1]  == 0xFF)
+                else if (bytes[offset] == 0xFE && bytes[offset + 1]  == 0xFF)
                 {
                     // This is big-endian Unicode.  Use CP1201 to decode.
                     if (UCS == null)
