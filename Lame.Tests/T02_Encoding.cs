@@ -12,7 +12,7 @@ namespace Lame.Tests
         private const string SourceFilename = @"Test.wav";
 
         [TestMethod]
-        public void T01_EncodeStream()
+        public void TC01_EncodeStream()
         {
             Assert.IsTrue(File.Exists(SourceFilename));
 

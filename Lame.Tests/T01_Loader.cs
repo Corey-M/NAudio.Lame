@@ -31,6 +31,23 @@ namespace Lame.Tests
             }
         }
 
+        [TestMethod]
+        public void TC02_DLLVersion()
+        {
+            var ver = LameDLL.GetLameVersion();
+
+            // GetLameVersion does not return the build number.
+            var strVer = LameDLL.LameVersion;
+            // If build number is 0 then it is omitted.  Add a dummy ".0" at the end
+            var verParts = (strVer + ".0").Split('.');
+            Assert.IsTrue(verParts.Length >= 3, $"Invalid version string \"{strVer}\"");
+            Assert.IsTrue(int.TryParse(verParts[2], out int verBuild), $"Failed to parse build number from \"{strVer}\"");
+
+            // check version is 3.99.5 or higher
+            bool versionCheck = ver.Major == 3 && (ver.Minor > 99 || (ver.Minor == 99 && verBuild >= 5));
+            Assert.IsTrue(versionCheck, $"Expected LAME dll version >= 3.99.5, found {strVer}");
+        }
+
         /// <summary>
         /// Check if any loaded assembly has the specified name.
         /// </summary>
