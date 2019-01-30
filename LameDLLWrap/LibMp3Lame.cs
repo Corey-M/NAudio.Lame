@@ -243,7 +243,7 @@ namespace LameDLLWrap
 			get
 			{
 				if (features_ptr != IntPtr.Zero)
-					return Marshal.PtrToStringAuto(features_ptr);
+					return Marshal.PtrToStringAnsi(features_ptr);
 				return null;
 			}
 		}
@@ -320,11 +320,12 @@ namespace LameDLLWrap
 
 		#region LAME context handle
 		private IntPtr context = IntPtr.Zero;
-		#endregion
+        #endregion
 
-		#region DLL version data
-		/// <summary>Lame Version</summary>
-		public static string LameVersion { get { return NativeMethods.get_lame_version(); } }
+        #region DLL version data
+        /// <summary>Lame Version</summary>
+        public static string LameVersion => Marshal.PtrToStringAnsi(NativeMethods.get_lame_version());
+
 		/// <summary>Lame Short Version</summary>
 		public static string LameShortVersion { get { return NativeMethods.get_lame_short_version(); } }
 		/// <summary>Lame Very Short Version</summary>
@@ -607,8 +608,7 @@ namespace LameDLLWrap
 		{
 			if (context == IntPtr.Zero)
 				throw new InvalidOperationException("InitParams called without initializing context");
-			int res = NativeMethods.lame_init_params(context);
-			return res == 0;
+            return CheckResult(NativeMethods.lame_init_params(context));
 		}
 
 		/// <summary>Write 16-bit integer PCM samples to encoder</summary>
@@ -744,21 +744,26 @@ namespace LameDLLWrap
 			 */
             // const char*  CDECL get_lame_version       ( void );
             [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-			internal static extern string get_lame_version();
-			// const char*  CDECL get_lame_short_version ( void );
-			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+            internal static extern IntPtr get_lame_version();
+
+            // const char*  CDECL get_lame_short_version ( void );
+            [DllImport(libname, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
 			internal static extern string get_lame_short_version();
-			// const char*  CDECL get_lame_very_short_version ( void );
-			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			
+            // const char*  CDECL get_lame_very_short_version ( void );
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
 			internal static extern string get_lame_very_short_version();
-			// const char*  CDECL get_psy_version        ( void );
-			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			
+            // const char*  CDECL get_psy_version        ( void );
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
 			internal static extern string get_psy_version();
-			// const char*  CDECL get_lame_url           ( void );
-			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			
+            // const char*  CDECL get_lame_url           ( void );
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
 			internal static extern string get_lame_url();
-			// const char*  CDECL get_lame_os_bitness    ( void );
-			[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+			
+            // const char*  CDECL get_lame_os_bitness    ( void );
+			[DllImport(libname, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
 			internal static extern string get_lame_os_bitness();
 
 			// void CDECL get_lame_version_numerical(lame_version_t *);

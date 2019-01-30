@@ -687,6 +687,8 @@ namespace NAudio.Lame
             if (tag == null)
                 return;
 
+            _lame.ID3Init();
+
             // Apply standard ID3 fields
             if (!string.IsNullOrEmpty(tag.Title))
                 _lame.ID3SetTitle(tag.Title);
@@ -710,14 +712,22 @@ namespace NAudio.Lame
                 _lame.ID3SetFieldValue($"TPE2={tag.AlbumArtist}");
 
             // Add user-defined tags if present
-            // NB: LAME handles the replacement of duplicates.
             foreach (var kv in tag.UserDefinedText)
             {
                 _lame.ID3SetFieldValue($"TXXX={kv.Key}={kv.Value}");
             }
-            // Set the album art if supplied and within size limits
-            if (tag.AlbumArt?.Length > 0 && tag.AlbumArt.Length < 131072)
+            // Set the album art if supplied
+            if (tag.AlbumArt?.Length > 0)
 				_lame.ID3SetAlbumArt(tag.AlbumArt);
+
+            // check size of ID3 tag, if too large write it ourselves.
+            byte[] data = _lame.ID3GetID3v2Tag();
+            if (data.Length >= 32768)
+            {
+                _lame.ID3WriteTagAutomatic = false;
+
+                outStream.Write(data, 0, data.Length);
+            }
         }
 
         /// <summary>

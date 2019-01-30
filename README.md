@@ -54,9 +54,9 @@ There are a lot of other bits of information that can potentially be stored in t
 I'll have to play with it some more.
 
 And yes, you *can* add a cover image, in JPG, PNG or GIF format.
-It should support up to 128K file size, but seems to have issues with files that size.
-The [source for `id3tag_set_albumart`][2] doesn't help much either.
-The test program shows an example of a smaller file that does work.
+LAME can't directly support ID3v2 tags greater than 32KB in size due to internal buffer size constraints, it does allow you to write your own ID3 tags.
+The solution to the limit is to write the ID3 tags directly if they are too large for LAME to handle.
+Probably a good idea to keep the size reasonable.
 
 ### Sample Code
 
