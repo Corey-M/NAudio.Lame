@@ -36,8 +36,6 @@ namespace NAudio.Lame
 
 		private static Assembly LoadLameWrapper(object sender, ResolveEventArgs args)
 		{
-			//Console.WriteLine("LoadLameWrapper(): {0}", args.Name);
-
 			var asmName = new AssemblyName(args.Name).Name + ".dll";
 			var srcAssembly = typeof(LameMP3FileWriter).Assembly;
 
@@ -64,20 +62,8 @@ namespace NAudio.Lame
 			if (src == null)
 				return null;
 
-			// Load assembly from byte array
-			//Console.WriteLine("Loaded {0} bytes from resource", src.Length);
-			try
-			{
-				var res = Assembly.Load(src, null, SecurityContextSource.CurrentAppDomain);
-				return res;
-			}
-			catch //(Exception e)
-			{
-				//Console.WriteLine("LoadLameWrapper: Failed to create assembly from buffer.");
-				//Console.WriteLine("Exception:");
-				//Console.WriteLine("{0}", e.Message);
-				throw;
-			}
+            // Load assembly from byte array
+            return Assembly.Load(src);
 		}
 
 		public static void Init()
