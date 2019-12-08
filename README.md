@@ -2,9 +2,12 @@
 
 ## Description
 
-Wrapper for `libmp3lame.dll` to add MP3 encoding support to NAudio.
+Wrapper for `libmp3lame.dll` to add MP3 encoding support to NAudio on Windows.
 
-Includes both 32-bit and 64-bit versions of `libmp3lame.dll` (named `libmp3lame.32.dll` and `libmp3lame.64.dll` respectively), both of which will be copied to the output folder on build.
+**IMPORTANT:** Because this wraps Windows native DLLs *it will not work on any operating system.*  It may 
+function with Windows emulation layers but I have never tested this.
+
+Includes both 32-bit and 64-bit versions of Windows native `libmp3lame.dll` (named `libmp3lame.32.dll` and `libmp3lame.64.dll` respectively), both of which will be copied to the output folder on build.
 If you are compiling for a specific CPU target - `x86` or `x64` - then you only need to distribute the appropriate version.
 
 The `LameDLLWrap` project is the interface to both 32-bit and 64-bit version of the native DLLs, and is compiled for both targets.
@@ -17,6 +20,10 @@ This will happen for example in ASP.NET projects.
 ## Usage
 
 The `LameMP3FileWriter` class implements a `Stream` that encodes data written to it, writing the encoded MP3 data to either a file or a stream you provide.
+
+Note that on .NET Core you must initialize the resource assembly loader before using any other feature of the library:
+
+    Loader.Init();
 
 ### Sample Code
 
@@ -31,6 +38,9 @@ Here is a very simple codec class to convert a WAV file to and from MP3:
         // Convert WAV to MP3 using libmp3lame library
         public static void WaveToMP3(string waveFileName, string mp3FileName, int bitRate = 128)
         {
+            // Initialize resource assembly loader
+            Loader.Init();
+
             using (var reader = new AudioFileReader(waveFileName))
             using (var writer = new LameMP3FileWriter(mp3FileName, reader.WaveFormat, bitRate))
                 reader.CopyTo(writer);
@@ -39,6 +49,9 @@ Here is a very simple codec class to convert a WAV file to and from MP3:
         // Convert MP3 file to WAV using NAudio classes only
         public static void MP3ToWave(string mp3FileName, string waveFileName)
         {
+            // Initialize resource assembly loader
+            Loader.Init();
+
             using (var reader = new Mp3FileReader(mp3FileName))
             using (var writer = new WaveFileWriter(waveFileName, reader.WaveFormat))
                 reader.CopyTo(writer);
@@ -68,6 +81,9 @@ Probably a good idea to keep the size reasonable.
     {
         static void Main(string[] args)
         {
+            // Initialize resource assembly loader
+            Loader.Init();
+
             ID3TagData tag = new ID3TagData 
             {
                 Title = "A Test File",
@@ -106,6 +122,9 @@ Since blocks are encoded very frequently I've added a very simple rate limiter t
 
         static void Main(string[] args)
         {
+            // Initialize resource assembly loader
+            Loader.Init();
+
             using (var reader = new NAudio.Wave.AudioFileReader(@"C:\Temp\TestWave.wav"))
             using (var writer = new NAudio.Lame.LameMP3FileWriter(@"C:\Temp\Encoded.mp3", reader.WaveFormat, NAudio.Lame.LAMEPreset.V3))
             {
@@ -130,6 +149,12 @@ Since blocks are encoded very frequently I've added a very simple rate limiter t
     }
 
 ## Relase Notes
+
+### Version 1.1.0
+
+Rebuilt as .NET Standard 2.0 to attempt to make this fully compatible with .NET Core on Windows.
+
+Made resource assembly loader public to allow manual initialization on .NET Core.
 
 ### Version 1.0.9
 

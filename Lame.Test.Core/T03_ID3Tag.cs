@@ -1,15 +1,19 @@
-﻿using System;
-using System.IO;
-using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NAudio.Lame;
 using NAudio.Wave;
+using System.IO;
+using System.Text;
 
-namespace Lame.Tests
+namespace Lame.Test
 {
     [TestClass]
     public class T03_ID3Tag
     {
+        public T03_ID3Tag()
+        {
+            //Loader.Init();
+        }
+
         [TestMethod]
         public void TC01_CreateTag()
         {

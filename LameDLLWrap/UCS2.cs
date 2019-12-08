@@ -60,7 +60,7 @@ namespace LameDLLWrap
                     offset += 2;
                     length -= 2;
                 }
-                else if (bytes[offset] == 0xFE && bytes[offset + 1]  == 0xFF)
+                else if (bytes[offset] == 0xFE && bytes[offset + 1] == 0xFF)
                 {
                     // This is big-endian Unicode.  Use CP1201 to decode.
                     if (UCS == null)

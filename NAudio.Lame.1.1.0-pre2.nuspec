@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>NAudio.Lame</id>
-    <version>1.0.9</version>
+    <version>1.1.0-pre2</version>
     <authors>Corey Murtagh</authors>
     <owners>Corey Murtagh</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -10,7 +10,9 @@
     <projectUrl>https://github.com/Corey-M/NAudio.Lame</projectUrl>
     <description>Uses libmp3lame.dll from the Lame project to provide MP3 encoding support to NAudio.  Both 64-bit and 32-bit versions of libmp3lame.dll are provided, with platform detection to determine which to use.</description>
     <summary>Implements MP3 writing for NAudio using libmp3lame.</summary>
-    <releaseNotes>v1.0.9 Fixed Unicode bug, added Unicode comments, added unit tests.
+    <releaseNotes>v1.1.0-pre2 Changed all projects to .NET STandard 2.0, rebuilt testing using .NET Core, fixed loader initialization problems.
+	
+v1.0.9 Fixed Unicode bug, added Unicode comments, added unit tests.
     
 v1.0.8 Added support for Unicode text in ID3TagData.UserDefinedTags.
 
@@ -35,10 +37,10 @@ v1.0.1 Added platform detection to allow both 32-bit and 64-bit execution from o
     </dependencies>
   </metadata>
   <files>
-    <file src="libmp3lame.32.dll" target="build\libmp3lame.32.dll" />
-    <file src="libmp3lame.64.dll" target="build\libmp3lame.64.dll" />
-    <file src="Tools\NAudio.Lame.targets" target="build\NAudio.Lame.targets" />
-    <file src="bin\Release\NAudio.Lame.dll" target="lib\net40\NAudio.Lame.dll" />
+    <file src="NAudio.Lame\libmp3lame.32.dll" target="build\libmp3lame.32.dll" />
+    <file src="NAudio.Lame\libmp3lame.64.dll" target="build\libmp3lame.64.dll" />
+    <file src="NAudio.Lame.targets" target="build\NAudio.Lame.targets" />
+    <file src="NAudio.Lame\bin\Release\netstandard2.0\NAudio.Lame.dll" target="lib\netstandard2.0\NAudio.Lame.dll" />
     <file src="LICENSE.txt" target="LICENSE.txt" />
   </files>
 </package>

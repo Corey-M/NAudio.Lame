@@ -1,16 +1,13 @@
-﻿using System;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NAudio.Lame;
-
-namespace Lame.Tests
+using System;
+using System.Linq;
+using System.Reflection;
+namespace Lame.Test
 {
-    /// <summary>
-    /// Tests targetting the resource loader and initializer.
-    /// </summary>
-    [TestClass]
-    public class T01_Loader
-    {
+	[TestClass]
+	public class T01_Loader
+	{
         /// <summary>
         /// Confirm that the resource DLL is not loaded until needed.
         /// </summary>
@@ -24,6 +21,7 @@ namespace Lame.Tests
             else
             {
                 // Provoke loader to extract resource DLL and load assembly
+                Assert.IsNotNull(LameDLL.LameVersion);
                 Assert.IsNotNull(LameDLL.GetLameVersion());
 
                 // Confirm loading successful
@@ -34,10 +32,11 @@ namespace Lame.Tests
         [TestMethod]
         public void TC02_DLLVersion()
         {
-            var ver = LameDLL.GetLameVersion();
-
+            //Loader.Init();
             // GetLameVersion does not return the build number.
             var strVer = LameDLL.LameVersion;
+            var ver = LameDLL.GetLameVersion();
+
             // If build number is 0 then it is omitted.  Add a dummy ".0" at the end
             var verParts = (strVer + ".0").Split('.');
             Assert.IsTrue(verParts.Length >= 3, $"Invalid version string \"{strVer}\"");

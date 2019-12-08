@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Platforms>AnyCPU</Platforms>
+    <Version>1.1.0</Version>
+    <Authors>Corey Murtagh</Authors>
+    <Copyright>Copyright 2019 Corey Murtagh</Copyright>
+    <Description>Uses libmp3lame.dll from the Lame project to provide MP3 encoding support to NAudio.  Both 64-bit and 32-bit versions of libmp3lame.dll are provided, with platform detection to determine which to use.</Description>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+  
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <EmbeddedResource Include="..\LameDLLWrap\bin\x86\Debug\netstandard2.0\LameDLLWrap.dll" Link="x86.LameDLLWrap.dll" />
+    <EmbeddedResource Include="..\LameDLLWrap\bin\x64\Debug\netstandard2.0\LameDLLWrap.dll" Link="x64.LameDLLWrap.dll" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <EmbeddedResource Include="..\LameDLLWrap\bin\x86\Release\netstandard2.0\LameDLLWrap.dll" Link="x86.LameDLLWrap.dll" />
+    <EmbeddedResource Include="..\LameDLLWrap\bin\x64\Release\netstandard2.0\LameDLLWrap.dll" Link="x64.LameDLLWrap.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="libmp3lame.32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="libmp3lame.64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="1.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LameDLLWrap\LameDLLWrap.csproj">
+      <Private>false</Private>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <ExcludeAssets></ExcludeAssets>
+      <PrivateAssets>*.dll</PrivateAssets>
+    </ProjectReference>
+  </ItemGroup>
+
+</Project>

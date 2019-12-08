@@ -4,11 +4,16 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NAudio.Lame;
 using NAudio.Wave;
 
-namespace Lame.Tests
+namespace Lame.Test
 {
     [TestClass]
     public class T02_Encoding
     {
+        public T02_Encoding()
+        {
+            //Loader.Init();
+        }
+
         private const string SourceFilename = @"Test.wav";
 
         [TestMethod]
@@ -16,15 +21,13 @@ namespace Lame.Tests
         {
             Assert.IsTrue(File.Exists(SourceFilename));
 
-            TimeSpan source_time = TimeSpan.Zero;
-
             using (var mp3data = new MemoryStream())
             {
                 // Convert source wave to MP3
                 using (var source = new AudioFileReader(SourceFilename))
                 using (var mp3writer = new LameMP3FileWriter(mp3data, source.WaveFormat, LAMEPreset.STANDARD))
                 {
-                    source_time = source.TotalTime;
+                    TimeSpan source_time = source.TotalTime;
                     source.CopyTo(mp3writer);
                     Assert.AreEqual(source.Length, source.Position);
                 }

@@ -1,30 +1,4 @@
-﻿#region MIT license
-// 
-// MIT license
-//
-// Copyright (c) 2013 Corey Murtagh
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-// 
-#endregion
-using NAudio.Lame;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -57,7 +31,9 @@ namespace NAudio.Lame
 
             // Load entire tag into buffer and parse
             var buffer = new byte[10 + size];
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             rc = stream.Read(buffer, 0, buffer.Length);
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
             return InternalDecode(buffer, 0, size, header[5]);
         }
 
@@ -108,8 +84,7 @@ namespace NAudio.Lame
             }
 
             // load all frames from the tag buffer
-            int frameSize = 0;
-            for (var frame = ID3FrameData.ReadFrame(bytes, pos, out frameSize); frameSize > 0 && frame != null; frame = ID3FrameData.ReadFrame(bytes, pos, out frameSize))
+            for (var frame = ID3FrameData.ReadFrame(bytes, pos, out int frameSize); frameSize > 0 && frame != null; frame = ID3FrameData.ReadFrame(bytes, pos, out frameSize))
             {
                 switch (frame.FrameID)
                 {
@@ -268,7 +243,7 @@ namespace NAudio.Lame
                 size = -1;
                 if ((buffer.Length - offset) <= 10)
                     return null;
-                
+
                 // Extract header data
                 string frameID = Encoding.ASCII.GetString(buffer, offset, 4);
                 int frameLength = DecodeBEInt32(buffer, offset + 4);
@@ -383,7 +358,7 @@ namespace NAudio.Lame
             public KeyValuePair<string, string> ParseUserDefinedText()
             {
                 byte encoding = Data[0];
-                delGetString getstring = null;
+                delGetString getstring;
                 if (encoding == 0)
                     getstring = GetASCIIString;
                 else if (encoding == 1)
@@ -453,7 +428,5 @@ namespace NAudio.Lame
                 public byte[] ImageBytes;
             }
         }
-
-        
     }
 }
