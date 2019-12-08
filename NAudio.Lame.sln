@@ -23,7 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GitHub", "GitHub", "{1D6D2A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lame.Test.Framework", "Lame.Test.Framework\Lame.Test.Framework.csproj", "{DF68A50E-1072-4C6B-89F7-6B7CCDB7AE5D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lame.Test.Core", "Lame.Test.Core\Lame.Test.Core.csproj", "{8E826CC5-1821-4529-8746-C6653586C5E4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lame.Test.Core", "Lame.Test.Core\Lame.Test.Core.csproj", "{8E826CC5-1821-4529-8746-C6653586C5E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
