@@ -5,11 +5,6 @@ namespace NAudio.Lame
 {
 	public static class LameDLL
 	{
-		static LameDLL()
-		{
-			Loader.Init();
-		}
-
 		/// <summary>Lame Version</summary>
 		public static string LameVersion => LameDLLImpl.LameVersion;
 		/// <summary>Lame Short Version</summary>
@@ -28,11 +23,6 @@ namespace NAudio.Lame
 
 	internal static class LameDLLImpl
 	{
-		static LameDLLImpl()
-		{
-			Loader.Init();
-		}
-
 		/// <summary>Lame Version</summary>
 		internal static string LameVersion => LibMp3Lame.LameVersion;
 		/// <summary>Lame Short Version</summary>

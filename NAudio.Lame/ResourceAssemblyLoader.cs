@@ -6,7 +6,7 @@ namespace NAudio.Lame
 	/// <summary>
 	/// Resource Assembly Loader
 	/// </summary>
-	public static class Loader
+	internal static class ResourceAssemblyLoader
 	{
 		#region State
 		internal static bool Initialized = false;
@@ -18,7 +18,7 @@ namespace NAudio.Lame
 		/// </summary>
 		public static void Init()
 		{
-			lock (typeof(Loader))
+			lock (typeof(ResourceAssemblyLoader))
 			{
 				if (!Initialized)
 				{
@@ -31,7 +31,7 @@ namespace NAudio.Lame
 		private static Assembly LoadLameWrapper(object sender, ResolveEventArgs args)
 		{
 			var asmName = new AssemblyName(args.Name).Name + ".dll";
-			var srcAssembly = typeof(Loader).Assembly;
+			var srcAssembly = typeof(ResourceAssemblyLoader).Assembly;
 
 			// search resources for requested assembly
 			byte[] src = null;

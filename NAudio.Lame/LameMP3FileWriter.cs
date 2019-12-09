@@ -23,11 +23,6 @@ namespace NAudio.Lame
 
 	public class LameMP3FileWriter : Stream
 	{
-		static LameMP3FileWriter()
-		{
-			Loader.Init();
-		}
-
 		#region State
 		// LAME library context 
 		private LibMp3Lame _lame;
@@ -99,7 +94,6 @@ namespace NAudio.Lame
 		public LameMP3FileWriter(Stream outStream, WaveFormat format, LAMEPreset quality, ID3TagData id3 = null)
 			: base()
 		{
-			Loader.Init();
 			if (format == null)
 				throw new ArgumentNullException("format");
 
@@ -174,7 +168,6 @@ namespace NAudio.Lame
 		public LameMP3FileWriter(Stream outStream, WaveFormat format, int bitRate, ID3TagData id3 = null)
 			: base()
 		{
-			Loader.Init();
 			if (format == null)
 				throw new ArgumentNullException("format");
 
