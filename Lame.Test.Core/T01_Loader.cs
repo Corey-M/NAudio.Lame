@@ -32,7 +32,6 @@ namespace Lame.Test
         [TestMethod]
         public void TC02_DLLVersion()
         {
-            //Loader.Init();
             // GetLameVersion does not return the build number.
             var strVer = LameDLL.LameVersion;
             var ver = LameDLL.GetLameVersion();

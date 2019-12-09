@@ -9,11 +9,6 @@ namespace Lame.Test
     [TestClass]
     public class T03_ID3Tag
     {
-        public T03_ID3Tag()
-        {
-            //Loader.Init();
-        }
-
         [TestMethod]
         public void TC01_CreateTag()
         {

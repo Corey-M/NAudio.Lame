@@ -9,11 +9,6 @@ namespace Lame.Test
     [TestClass]
     public class T02_Encoding
     {
-        public T02_Encoding()
-        {
-            //Loader.Init();
-        }
-
         private const string SourceFilename = @"Test.wav";
 
         [TestMethod]
