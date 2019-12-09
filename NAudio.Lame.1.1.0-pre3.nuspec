@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>NAudio.Lame</id>
-    <version>1.1.0-pre2</version>
+    <version>1.1.0-pre3</version>
     <authors>Corey Murtagh</authors>
     <owners>Corey Murtagh</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -10,7 +10,7 @@
     <projectUrl>https://github.com/Corey-M/NAudio.Lame</projectUrl>
     <description>Uses libmp3lame.dll from the Lame project to provide MP3 encoding support to NAudio.  Both 64-bit and 32-bit versions of libmp3lame.dll are provided, with platform detection to determine which to use.</description>
     <summary>Implements MP3 writing for NAudio using libmp3lame.</summary>
-    <releaseNotes>v1.1.0-pre2 Changed all projects to .NET STandard 2.0, rebuilt testing using .NET Core, fixed loader initialization problems.
+    <releaseNotes>v1.1.0-pre3 Changed all projects to .NET STandard 2.0, rebuilt testing using .NET Core, fixed loader initialization problems.
 	
 v1.0.9 Fixed Unicode bug, added Unicode comments, added unit tests.
     
@@ -31,16 +31,16 @@ v1.0.2 Fixed problem with static initializer not being called in some configurat
 v1.0.1 Added platform detection to allow both 32-bit and 64-bit execution from one package.</releaseNotes>
     <copyright>Copyright (c) 2013-2019 Corey Murtagh</copyright>
     <language>en-AU</language>
-    <tags>C# NAudio MP3 Lame</tags>
+    <tags>C# NAudio MP3 Lame Windows</tags>
     <dependencies>
-      <dependency id="NAudio" version="1.8.1" />
+      <dependency id="NAudio" version="1.9.0" />
     </dependencies>
   </metadata>
   <files>
     <file src="NAudio.Lame\libmp3lame.32.dll" target="build\libmp3lame.32.dll" />
     <file src="NAudio.Lame\libmp3lame.64.dll" target="build\libmp3lame.64.dll" />
     <file src="NAudio.Lame.targets" target="build\NAudio.Lame.targets" />
-    <file src="NAudio.Lame\bin\Release\netstandard2.0\NAudio.Lame.dll" target="lib\netstandard2.0\NAudio.Lame.dll" />
+    <file src="NAudio.Lame\bin\Release\NAudio.Lame.dll" target="lib\net40\NAudio.Lame.dll" />
     <file src="LICENSE.txt" target="LICENSE.txt" />
   </files>
 </package>
