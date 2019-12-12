@@ -40,7 +40,7 @@ v1.0.1 Added platform detection to allow both 32-bit and 64-bit execution from o
     <file src="NAudio.Lame\libmp3lame.32.dll" target="build\libmp3lame.32.dll" />
     <file src="NAudio.Lame\libmp3lame.64.dll" target="build\libmp3lame.64.dll" />
     <file src="NAudio.Lame.targets" target="build\NAudio.Lame.targets" />
-    <file src="NAudio.Lame\bin\Release\NAudio.Lame.dll" target="lib\net40\NAudio.Lame.dll" />
+    <file src="NAudio.Lame\bin\Release\netstandard2.0\NAudio.Lame.dll" target="lib\netstandard2.0\NAudio.Lame.dll" />
     <file src="LICENSE.txt" target="LICENSE.txt" />
   </files>
 </package>

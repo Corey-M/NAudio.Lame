@@ -21,10 +21,6 @@ This will happen for example in ASP.NET projects.
 
 The `LameMP3FileWriter` class implements a `Stream` that encodes data written to it, writing the encoded MP3 data to either a file or a stream you provide.
 
-Note that on .NET Core you must initialize the resource assembly loader before using any other feature of the library:
-
-    Loader.Init();
-
 ### Sample Code
 
 Here is a very simple codec class to convert a WAV file to and from MP3:
@@ -38,9 +34,6 @@ Here is a very simple codec class to convert a WAV file to and from MP3:
         // Convert WAV to MP3 using libmp3lame library
         public static void WaveToMP3(string waveFileName, string mp3FileName, int bitRate = 128)
         {
-            // Initialize resource assembly loader
-            Loader.Init();
-
             using (var reader = new AudioFileReader(waveFileName))
             using (var writer = new LameMP3FileWriter(mp3FileName, reader.WaveFormat, bitRate))
                 reader.CopyTo(writer);
@@ -49,9 +42,6 @@ Here is a very simple codec class to convert a WAV file to and from MP3:
         // Convert MP3 file to WAV using NAudio classes only
         public static void MP3ToWave(string mp3FileName, string waveFileName)
         {
-            // Initialize resource assembly loader
-            Loader.Init();
-
             using (var reader = new Mp3FileReader(mp3FileName))
             using (var writer = new WaveFileWriter(waveFileName, reader.WaveFormat))
                 reader.CopyTo(writer);
@@ -81,9 +71,6 @@ Probably a good idea to keep the size reasonable.
     {
         static void Main(string[] args)
         {
-            // Initialize resource assembly loader
-            Loader.Init();
-
             ID3TagData tag = new ID3TagData 
             {
                 Title = "A Test File",
@@ -122,9 +109,6 @@ Since blocks are encoded very frequently I've added a very simple rate limiter t
 
         static void Main(string[] args)
         {
-            // Initialize resource assembly loader
-            Loader.Init();
-
             using (var reader = new NAudio.Wave.AudioFileReader(@"C:\Temp\TestWave.wav"))
             using (var writer = new NAudio.Lame.LameMP3FileWriter(@"C:\Temp\Encoded.mp3", reader.WaveFormat, NAudio.Lame.LAMEPreset.V3))
             {
@@ -150,11 +134,19 @@ Since blocks are encoded very frequently I've added a very simple rate limiter t
 
 ## Relase Notes
 
-### Version 1.1.0
+### Version 1.1.0-pre3
+
+Replaced static constructor initialization with `ModuleInit.Fody` module initializer to properly initialize the Resource Assembly Loader.
+
+### Version 1.1.0-pre2
 
 Rebuilt as .NET Standard 2.0 to attempt to make this fully compatible with .NET Core on Windows.
 
-Made resource assembly loader public to allow manual initialization on .NET Core.
+Made Resource Assembly Loader (`Loader`) public to allow manual initialization on .NET Core as static constructors don't cut it anymore.
+
+### Version 1.1.0-pre1
+
+Initial attempt to add .NET Standard support using multi-targetted compilation.
 
 ### Version 1.0.9
 
@@ -202,3 +194,4 @@ Should resolve #25 and #27 and allow the package to work outside of Visual Studi
 
 [1]: http://naudio.codeplex.com/SourceControl/latest#NAudio/FileFormats/Mp3/IMp3FrameDecompressor.cs
 [2]: https://sourceforge.net/p/lame/svn/6430/tree/trunk/lame/libmp3lame/id3tag.c#l617
+[3]: https://github.com/fody/ModuleInit
