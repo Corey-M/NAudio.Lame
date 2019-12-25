@@ -134,6 +134,15 @@ Since blocks are encoded very frequently I've added a very simple rate limiter t
 
 ## Relase Notes
 
+### Version 1.1.0
+
+Released to NuGet 25-Dec-2019.
+
+New Features:
+
+* Is now a fully .NET Standard 2.0 build.  Still only runs on Windows with native DLLs.
+* Uses Fody to initialize library, removing .NET Framework dependence or manual initialization.
+
 ### Version 1.1.0-pre3
 
 Replaced static constructor initialization with `ModuleInit.Fody` module initializer to properly initialize the Resource Assembly Loader.
