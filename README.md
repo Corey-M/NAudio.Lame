@@ -1,5 +1,5 @@
 # NAudio.Lame
-
+[![Build Status](https://github.com/Corey-M/NAudio.Lame/workflows/.NET%20Core%202.2/badge.svg)](https://github.com/Corey-M/NAudio.Lame/actions?workflow=.NET%20Core%202.2)
 ## Description
 
 Wrapper for `libmp3lame.dll` to add MP3 encoding support to NAudio on Windows.
