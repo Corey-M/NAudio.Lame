@@ -1,0 +1,25 @@
+name: .NET Core 2.2
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '**.nuspec'
+      - 'Lame.Test.Framework/**'
+      - '.git*'
+      - '.git*/**'
+
+jobs:
+  ci:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 2.2.108
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
+    - name: Run tests
+      run: dotnet test
