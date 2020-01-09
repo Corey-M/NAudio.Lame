@@ -7,7 +7,7 @@ on:
       - '**.nuspec'
       - 'Lame.Test.Framework/**'
       - '.git*'
-      - '.git*/**'
+      - '!.git*/**.yml'
 
 jobs:
   ci:
@@ -19,7 +19,13 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 2.2.108
-    - name: Build with dotnet
-      run: dotnet build --configuration Release
+    - name: Build LameDLLWrap (Debug|x86)
+      run: dotnet build LameDLLWrap -c:Debug -p:Platform=x86
+    - name: Build LameDLLWrap (Debug|x64)
+      run: dotnet build LameDLLWrap -c:Debug -p:Platform=x64
+    - name: Build NAudio.Lame
+      run: dotnet build NAudio.Lame -c:Debug -p:Platform=AnyCPU
+    - name: Build Lame.Test.Core
+      run: dotnet build Lame.Test.Core -c:Debug -p:Platform=AnyCPU
     - name: Run tests
       run: dotnet test
