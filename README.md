@@ -132,7 +132,24 @@ Since blocks are encoded very frequently I've added a very simple rate limiter t
         }
     }
 
+### Encoder Configuration
+
+From v1.1.1 there is a new `LameConfig` class which has a variety of settings that will alter the encoder's operation.  This allows you to set the Copyright flag on encoded frames, etc.
+
+While there are many more settings available I don't have a clear picture of who wants what.  If you're desperate for the quantization or filtering settings let me know.
+
 ## Relase Notes
+
+### Version 1.1.1
+
+Released to NuGet 6-Apr-2020.
+
+New Features:
+
+* Links to NAudio v1.10.0.
+* Added a `LameConfig` class to allow more control over encoder initialization.
+
+`LameConfig` has a short list of settings for the encoder.  More may be added in future.
 
 ### Version 1.1.0
 
