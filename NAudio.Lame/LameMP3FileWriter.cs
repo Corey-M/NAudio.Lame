@@ -72,6 +72,8 @@ namespace NAudio.Lame
 		public event ProgressHandler OnProgress;
 
 		private DateTime _lastProgress = DateTime.Now;
+
+		// Pre-initialisation
 		#endregion
 
 		#region Lifecycle
@@ -92,62 +94,8 @@ namespace NAudio.Lame
 		/// <param name="quality">LAME quality preset</param>
 		/// <param name="id3">Optional ID3 data block</param>
 		public LameMP3FileWriter(Stream outStream, WaveFormat format, LAMEPreset quality, ID3TagData id3 = null)
-			: base()
-		{
-			if (format == null)
-				throw new ArgumentNullException("format");
-
-			// check for unsupported wave formats
-			if (format.Channels != 1 && format.Channels != 2)
-				throw new ArgumentException($"Unsupported number of channels {format.Channels}", "format");
-			if (format.Encoding != WaveFormatEncoding.Pcm && format.Encoding != WaveFormatEncoding.IeeeFloat)
-				throw new ArgumentException($"Unsupported encoding format {format.Encoding}", "format");
-			if (format.Encoding == WaveFormatEncoding.Pcm && format.BitsPerSample != 16)
-				throw new ArgumentException($"Unsupported PCM sample size {format.BitsPerSample}", "format");
-			if (format.Encoding == WaveFormatEncoding.IeeeFloat && format.BitsPerSample != 32)
-				throw new ArgumentException($"Unsupported Float sample size {format.BitsPerSample}", "format");
-			if (format.SampleRate < 8000 || format.SampleRate > 48000)
-				throw new ArgumentException($"Unsupported Sample Rate {format.SampleRate}", "format");
-
-			// select encoder function that matches data format
-			if (format.Encoding == WaveFormatEncoding.Pcm)
-			{
-				if (format.Channels == 1)
-					_encode = Encode_pcm_16_mono;
-				else
-					_encode = Encode_pcm_16_stereo;
-			}
-			else
-			{
-				if (format.Channels == 1)
-					_encode = Encode_float_mono;
-				else
-					_encode = Encode_float_stereo;
-			}
-
-			// Set base properties
-			_inputFormat = format;
-			_outStream = outStream ?? throw new ArgumentNullException("outStream");
-			_disposeOutput = false;
-
-			// Allocate buffers based on sample rate
-			_inBuffer = new ArrayUnion(format.AverageBytesPerSecond);
-			_outBuffer = new byte[format.SampleRate * 5 / 4 + 7200];
-
-			// Initialize lame library
-			_lame = new LibMp3Lame
-			{
-				InputSampleRate = format.SampleRate,
-				NumChannels = format.Channels
-			};
-
-			_lame.SetPreset((int)quality);
-
-			if (id3 != null)
-				ApplyID3Tag(id3);
-
-			_lame.InitParams();
-		}
+			: this(outStream, format, new LameConfig { Preset = quality, ID3 = id3 })
+		{ }
 
 		/// <summary>Create MP3FileWriter to write to a file on disk</summary>
 		/// <param name="outFileName">Name of file to create</param>
@@ -166,6 +114,24 @@ namespace NAudio.Lame
 		/// <param name="bitRate">Output bit rate in kbps</param>
 		/// <param name="id3">Optional ID3 data block</param>
 		public LameMP3FileWriter(Stream outStream, WaveFormat format, int bitRate, ID3TagData id3 = null)
+			: this(outStream, format, new LameConfig { BitRate = bitRate, ID3 = id3 })
+		{ }
+
+		/// <summary>Create MP3FileWriter to write to a file on disk</summary>
+		/// <param name="outFileName">Name of file to create</param>
+		/// <param name="format">Input WaveFormat</param>
+		/// <param name="config">LAME configuration</param>
+		public LameMP3FileWriter(string outFileName, WaveFormat format, LameConfig config)
+			: this(File.Create(outFileName), format, config)
+		{
+			_disposeOutput = true;
+		}
+
+		/// <summary>Create MP3FileWriter to write to supplied stream</summary>
+		/// <param name="outStream">Stream to write encoded data to</param>
+		/// <param name="format">Input WaveFormat</param>
+		/// <param name="config">LAME configuration</param>
+		public LameMP3FileWriter(Stream outStream, WaveFormat format, LameConfig config)
 			: base()
 		{
 			if (format == null)
@@ -209,15 +175,10 @@ namespace NAudio.Lame
 			_outBuffer = new byte[format.SampleRate * 5 / 4 + 7200];
 
 			// Initialize lame library
-			_lame = new LibMp3Lame
-			{
-				InputSampleRate = format.SampleRate,
-				NumChannels = format.Channels,
-				BitRate = bitRate
-			};
+			_lame = config.ConfigureDLL();
 
-			if (id3 != null)
-				ApplyID3Tag(id3);
+			if (config.ID3 != null)
+				ApplyID3Tag(config.ID3);
 
 			_lame.InitParams();
 		}
