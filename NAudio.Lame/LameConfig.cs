@@ -1,4 +1,5 @@
 ﻿using LameDLLWrap;
+using NAudio.Wave;
 
 namespace NAudio.Lame
 {
@@ -85,11 +86,21 @@ namespace NAudio.Lame
 		#region DLL initialisation
 		/// <summary>Create <see cref="LibMp3Lame"/> and configure it.</summary>
 		/// <returns></returns>
-		public LibMp3Lame ConfigureDLL()
+		public LibMp3Lame ConfigureDLL(WaveFormat format)
 		{
 			var result = new LibMp3Lame();
 
 			// Input settings
+			result.InputSampleRate = format.SampleRate;
+			result.NumChannels = format.Channels;
+
+			// Set quality
+			if (_bitrate != null)
+				result.BitRate = _bitrate.Value;
+			else
+				result.SetPreset((int)(_preset ?? LAMEPreset.STANDARD));
+
+			// Scaling
 			if (Scale != null) result.Scale = Scale.Value;
 			if (ScaleLeft != null) result.ScaleLeft = ScaleLeft.Value;
 			if (ScaleRight != null) result.ScaleRight = ScaleRight.Value;
@@ -106,12 +117,6 @@ namespace NAudio.Lame
 			if (Original != null) result.Original = Original.Value;
 			if (ErrorProtection != null) result.ErrorProtection = ErrorProtection.Value;
 			if (StrictISO != null) result.StrictISO = StrictISO.Value;
-
-			// Set quality
-			if (_bitrate != null)
-				result.BitRate = _bitrate.Value;
-			else
-				result.SetPreset((int)(_preset ?? LAMEPreset.STANDARD));
 
 			return result;
 		}

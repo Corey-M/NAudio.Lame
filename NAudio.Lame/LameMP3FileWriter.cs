@@ -175,7 +175,7 @@ namespace NAudio.Lame
 			_outBuffer = new byte[format.SampleRate * 5 / 4 + 7200];
 
 			// Initialize lame library
-			_lame = config.ConfigureDLL();
+			_lame = config.ConfigureDLL(format);
 
 			if (config.ID3 != null)
 				ApplyID3Tag(config.ID3);

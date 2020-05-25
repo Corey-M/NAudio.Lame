@@ -56,5 +56,41 @@ namespace Lame.Test
                 }
             }
         }
+
+        [TestMethod]
+        public void TC02_Formats()
+        {
+            bool TestFormat(WaveFormat format)
+            {
+                using (var mp3data = new MemoryStream())
+                {
+                    using (var writer = new LameMP3FileWriter(mp3data, format, LAMEPreset.STANDARD))
+                    {
+                        var bfr = new byte[format.AverageBytesPerSecond];
+                        writer.Write(bfr, 0, bfr.Length);
+                    }
+
+                    mp3data.Position = 0;
+                    using (var reader = new Mp3FileReader(mp3data))
+                    {
+                        var encodedFormat = format;
+                        return
+                            (encodedFormat.SampleRate == format.SampleRate) &&
+                            (encodedFormat.Channels == format.Channels);
+                    }
+                }
+            }
+
+            Assert.IsTrue(TestFormat(WaveFormat.CreateIeeeFloatWaveFormat(44100, 2)));
+            Assert.IsTrue(TestFormat(WaveFormat.CreateIeeeFloatWaveFormat(44100, 1)));
+            Assert.IsTrue(TestFormat(WaveFormat.CreateIeeeFloatWaveFormat(22050, 2)));
+            Assert.IsTrue(TestFormat(WaveFormat.CreateIeeeFloatWaveFormat(22050, 1)));
+            Assert.IsTrue(TestFormat(WaveFormat.CreateIeeeFloatWaveFormat(16000, 2)));
+            Assert.IsTrue(TestFormat(WaveFormat.CreateIeeeFloatWaveFormat(16000, 1)));
+            Assert.IsTrue(TestFormat(WaveFormat.CreateIeeeFloatWaveFormat(11028, 2)));
+            Assert.IsTrue(TestFormat(WaveFormat.CreateIeeeFloatWaveFormat(11025, 1)));
+            Assert.IsTrue(TestFormat(WaveFormat.CreateIeeeFloatWaveFormat(8000, 2)));
+            Assert.IsTrue(TestFormat(WaveFormat.CreateIeeeFloatWaveFormat(8000, 1)));
+        }
     }
 }
