@@ -18,11 +18,13 @@ namespace Lame.Test
 
             using (var mp3data = new MemoryStream())
             {
+                TimeSpan source_time = TimeSpan.MinValue;
+
                 // Convert source wave to MP3
                 using (var source = new AudioFileReader(SourceFilename))
                 using (var mp3writer = new LameMP3FileWriter(mp3data, source.WaveFormat, LAMEPreset.STANDARD))
                 {
-                    TimeSpan source_time = source.TotalTime;
+                    source_time = source.TotalTime;
                     source.CopyTo(mp3writer);
                     Assert.AreEqual(source.Length, source.Position);
                 }
@@ -31,6 +33,8 @@ namespace Lame.Test
                 mp3data.Position = 0;
                 using (var encoded = new Mp3FileReader(mp3data))
                 {
+                    var fmt = encoded.WaveFormat;
+
                     // encoding did not supply an ID3 tag, ensure none was present in file
                     Assert.IsNull(encoded.Id3v1Tag);
                     Assert.IsNull(encoded.Id3v2Tag);
@@ -40,9 +44,15 @@ namespace Lame.Test
                     Assert.AreEqual(mp3data.Length, encoded.XingHeader.Bytes);
 
                     // confirm that length is a multiple of the block size
-                    int blkSize = (encoded.XingHeader.Mp3Frame.SampleCount * encoded.WaveFormat.BitsPerSample * encoded.WaveFormat.Channels) / 8;
+                    int blkSize = (encoded.XingHeader.Mp3Frame.SampleCount * fmt.BitsPerSample * fmt.Channels) / 8;
                     int calcLength = blkSize * encoded.XingHeader.Frames;
                     Assert.AreEqual(calcLength, encoded.Length);
+
+                    // Check encoded time is less than 1/2 frame different
+                    var encodedTime = encoded.TotalTime;
+                    var frameTime = ((double)encoded.XingHeader.Mp3Frame.SampleCount / fmt.SampleRate);
+                    var diff = Math.Abs(encodedTime.TotalSeconds - source_time.TotalSeconds);
+                    Assert.IsTrue(diff < frameTime * 1.5d);
                 }
             }
         }

@@ -53,16 +53,11 @@ namespace Lame.Test
             var tag = new ID3TagData { Album = "Album" };
 
             using (var ms = new MemoryStream())
+            using (var writer = new LameMP3FileWriter(ms, waveFormat, LAMEPreset.STANDARD, tag))
             {
-                using (var writer = new LameMP3FileWriter(ms, waveFormat, LAMEPreset.STANDARD, tag))
-                {
-                    byte[] empty = new byte[8192];
-                    writer.Write(empty, 0, 8192);
-                    writer.Flush();
-                }
-                ms.Position = 0;
-
-                var writtenTag = ID3Decoder.Decode(ReadID3v2Tag(ms));
+                byte[] empty = new byte[8192];
+                writer.Write(empty, 0, 8192);
+                writer.Flush();
             }
         }
 
@@ -100,8 +95,6 @@ namespace Lame.Test
                     byte[] empty = new byte[8192];
                     writer.Write(empty, 0, 8192);
                     writer.Flush();
-
-                    //return ID3Decoder.Decode(writer.GetID3v2TagBytes());
                 }
                 ms.Position = 0;
                 return ID3Decoder.Decode(ReadID3v2Tag(ms));
