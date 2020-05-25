@@ -33,11 +33,6 @@
 //
 #endregion
 
-#if X64
-using size_t = System.UInt64;
-#else
-#endif
-
 namespace LameDLLWrap
 {
 	/// <summary>MPEG channel mode</summary>
@@ -45,11 +40,17 @@ namespace LameDLLWrap
 	{
 		/// <summary>Stereo</summary>
 		Stereo = 0,
+		
 		/// <summary>Joint Stereo</summary>
-		// JointStereo = 1,
-		DualChannel = 2,        // LAME does not support this
+		JointStereo = 1,
+		
+		/// <summary>Dual Channel Stereo, like Stereo only... different?</summary>
+		// LAME does not support this
+		//DualChannel = 2,
+
 		/// <summary>Mono</summary>
 		Mono = 3,
+		
 		/// <summary>Undefined</summary>
 		NotSet = 4
 	}

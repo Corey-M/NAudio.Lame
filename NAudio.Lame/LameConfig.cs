@@ -1,5 +1,4 @@
-﻿using LameDLLWrap;
-using NAudio.Wave;
+﻿using NAudio.Wave;
 
 namespace NAudio.Lame
 {
@@ -86,9 +85,9 @@ namespace NAudio.Lame
 		#region DLL initialisation
 		/// <summary>Create <see cref="LibMp3Lame"/> and configure it.</summary>
 		/// <returns></returns>
-		public LibMp3Lame ConfigureDLL(WaveFormat format)
+		public LameDLLWrap.LibMp3Lame ConfigureDLL(WaveFormat format)
 		{
-			var result = new LibMp3Lame();
+			var result = new LameDLLWrap.LibMp3Lame();
 
 			// Input settings
 			result.InputSampleRate = format.SampleRate;
@@ -108,7 +107,7 @@ namespace NAudio.Lame
 			// General Control
 			if (Analysis != null) result.Analysis = Analysis.Value;
 			if (WriteVBRTag != null) result.WriteVBRTag = WriteVBRTag.Value;
-			if (Mode != null) result.Mode = Mode.Value;
+			if (Mode != null) result.Mode = (LameDLLWrap.MPEGMode)Mode.Value;
 			if (ForceMS != null) result.ForceMS = ForceMS.Value;
 			if (UseFreeFormat != null) result.UseFreeFormat = UseFreeFormat.Value;
 
