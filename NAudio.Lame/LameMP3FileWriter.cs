@@ -443,7 +443,7 @@ namespace NAudio.Lame
 
 			// check size of ID3 tag, if too large write it ourselves.
 			byte[] data = _lame.ID3GetID3v2Tag();
-			if (data.Length >= 32768)
+			if (data?.Length >= 32768)
 			{
 				_lame.ID3WriteTagAutomatic = false;
 

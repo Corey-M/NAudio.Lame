@@ -143,7 +143,7 @@ namespace NAudio.Lame
         /// <param name="buffer">Array containing ID3v2 header</param>
         /// <returns>True if checks pass, else false</returns>
         private static bool ValidateTagHeader(byte[] buffer)
-            => buffer[0] == 'I' && buffer[1] == 'D' && buffer[2] == '3' && buffer[3] == 3 && buffer[4] == 0;
+            => buffer?.Length >= 4 && buffer[0] == 'I' && buffer[1] == 'D' && buffer[2] == '3' && buffer[3] == 3 && buffer[4] == 0;
 
         /// <summary>
         /// Decode a 28-bit integer stored in the low 7 bits of 4 bytes at the offset, most-significant bits first (big-endian).

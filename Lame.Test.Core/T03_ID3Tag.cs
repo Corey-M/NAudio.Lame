@@ -45,6 +45,27 @@ namespace Lame.Test
             CheckTagRoundTrip(srcTag);
         }
 
+        // Issue #42: NullReeferenceException when setting the ID3Tag.  Exception on failure.
+        [TestMethod]
+        public void Test_Issue42()
+        {
+            var waveFormat = new WaveFormat();
+            var tag = new ID3TagData { Album = "Album" };
+
+            using (var ms = new MemoryStream())
+            {
+                using (var writer = new LameMP3FileWriter(ms, waveFormat, LAMEPreset.STANDARD, tag))
+                {
+                    byte[] empty = new byte[8192];
+                    writer.Write(empty, 0, 8192);
+                    writer.Flush();
+                }
+                ms.Position = 0;
+
+                var writtenTag = ID3Decoder.Decode(ReadID3v2Tag(ms));
+            }
+        }
+
         private static ID3TagData MakeDefaultTag()
         {
             var res = new ID3TagData
