@@ -140,6 +140,16 @@ While there are many more settings available I don't have a clear picture of who
 
 ## Relase Notes
 
+### Version 1.1.2
+
+Releasted to NuGet 25-May-2020
+
+Changes:
+
+* Fixed missing sample rate and channel count initialisation (#43, #39).
+* Fixed init crash when ID3v1 tag was generated instead of ID3v2 (#42).
+* Fixed `MPEGMode` configuration being unavailable outside library (#37).
+
 ### Version 1.1.1
 
 Released to NuGet 6-Apr-2020.
