@@ -48,6 +48,37 @@ Here is a very simple codec class to convert a WAV file to and from MP3:
         }
     }
 
+## Native DLL Loading
+
+The new `NAudio.Lame.LameDLL.LoadNativeDLL(...)` method in v1.1.3 allows you to specify a set of root
+folders to search for the native DLLs and load the correct version for the current architecture. This is
+useful in ASP.NET and ASP.NET Core to resolve the native DLL in paths outside of the current directory
+and the system PATH.
+
+For ASP.NET (Framework version):
+
+    public static void LoadLameDLL()
+    {
+        LameDLL.LoadNativeDLL(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin"));
+    }
+
+For ASP.NET Core, from a `PageModel` or `Controller`:
+
+    public class IndexModel : PageModel
+    {
+        public IndexModel(IWebHostEnvironment hostEnvironment)
+        {
+            LameDLL.LoadNativeDLL(hostEnvironment.ContentRootPath);
+        }
+    }
+
+When the native DLL is loaded this way the handle is preserved and repeated calls to the method will
+return true without attempting to load the DLL again.
+
+The method is called during `LameDLLWrap` assembly loading the first time a method that uses the
+`NAudio.Lame` classes is called. On ASP.NET (Framework or Core) it is important to load the native DLL
+before it is needed.
+
 ## ID3 tag support
 
 The LameMP3FileWriter class now accepts an ID3TagData parameter, allowing you to supply some information that will be set as the ID3 tag on the MP3 file.
@@ -139,6 +170,18 @@ From v1.1.1 there is a new `LameConfig` class which has a variety of settings th
 While there are many more settings available I don't have a clear picture of who wants what.  If you're desperate for the quantization or filtering settings let me know.
 
 ## Relase Notes
+
+### Version 1.1.3
+
+Released to NuGet 14-Jul-2020
+
+Changes:
+
+* Added `LameDLL.LoadNativeDLL(...)` method to load correct version of the DLL to memory.
+
+  **Note:** This is _very_ Windows-specific. There is a guard against attempting to load on non-windows OS.
+
+* Call `LoadNativeDLL()` when wrapper assembly loaded to load Native DLL from default paths.
 
 ### Version 1.1.2
 
