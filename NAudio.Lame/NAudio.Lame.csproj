@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
     <Platforms>AnyCPU</Platforms>
     <Version>1.1.3</Version>
     <Authors>Corey Murtagh</Authors>
@@ -9,11 +9,6 @@
     <Description>Uses libmp3lame.dll from the Lame project to provide MP3 encoding support to NAudio.  Both 64-bit and 32-bit versions of libmp3lame.dll are provided, with platform detection to determine which to use.</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
-  
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <EmbeddedResource Include="..\LameDLLWrap\bin\x86\Debug\netstandard2.0\LameDLLWrap.dll" Link="x86.LameDLLWrap.dll" />
-    <EmbeddedResource Include="..\LameDLLWrap\bin\x64\Debug\netstandard2.0\LameDLLWrap.dll" Link="x64.LameDLLWrap.dll" />
-  </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <EmbeddedResource Include="..\LameDLLWrap\bin\x86\Release\netstandard2.0\LameDLLWrap.dll" Link="x86.LameDLLWrap.dll" />
