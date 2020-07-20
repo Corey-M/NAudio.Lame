@@ -29,4 +29,4 @@ jobs:
     - name: Build Lame.Test.Core
       run: dotnet build Lame.Test.Core -c:Debug -p:Platform=AnyCPU
     - name: Run tests
-      run: dotnet test
+      run: dotnet test Lame.Test.Core
