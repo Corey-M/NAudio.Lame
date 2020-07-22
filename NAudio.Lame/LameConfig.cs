@@ -33,6 +33,8 @@ namespace NAudio.Lame
 					_preset = null;
 			}
 		}
+		/// <summary>Select output sampling frequency. If not specified, LAME will automatically resample the input when using high compression ratios.</summary>
+		public int? OutputSampleRate { get; set; }
 		#endregion
 
 		#region Input settings
