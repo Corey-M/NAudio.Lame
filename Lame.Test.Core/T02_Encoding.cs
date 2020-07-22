@@ -103,28 +103,31 @@ namespace Lame.Test
 			var results = new Dictionary<LAMEPreset, long>();
 
 			WaveFormat sourceFormat;
-			using var srcms = new MemoryStream();
-			using (var source = new AudioFileReader(SourceFilename))
+			using (var srcms = new MemoryStream())
 			{
-				sourceFormat = source.WaveFormat;
-				source.CopyTo(srcms);
-			}
-
-			foreach (var preset in presets)
-			{
-				var config = new LameConfig { Preset = preset };
-				if (preset == LAMEPreset.STANDARD)
-					config.BitRate = 128;
-
-				using var mp3data = new MemoryStream();
-				using (var mp3writer = new LameMP3FileWriter(mp3data, sourceFormat, preset))
+				using (var source = new AudioFileReader(SourceFilename))
 				{
-					srcms.Position = 0;
-					srcms.CopyTo(mp3writer);
+					sourceFormat = source.WaveFormat;
+					source.CopyTo(srcms);
 				}
-				results[preset] = mp3data.Length;
-			}
 
+				foreach (var preset in presets)
+				{
+					var config = new LameConfig { Preset = preset };
+					if (preset == LAMEPreset.STANDARD)
+						config.BitRate = 128;
+
+					using (var mp3data = new MemoryStream())
+					{
+						using (var mp3writer = new LameMP3FileWriter(mp3data, sourceFormat, preset))
+						{
+							srcms.Position = 0;
+							srcms.CopyTo(mp3writer);
+						}
+						results[preset] = mp3data.Length;
+					}
+				}
+			}
 			// Compare encoded sizes for all combinations of presets
 			for (int i = 0; i < presets.Length - 2; i++)
 			{

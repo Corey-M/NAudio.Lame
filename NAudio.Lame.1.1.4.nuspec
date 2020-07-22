@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>NAudio.Lame</id>
-    <version>1.1.3</version>
+    <version>1.1.4</version>
     <authors>Corey Murtagh</authors>
     <owners>Corey Murtagh</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -10,7 +10,9 @@
     <projectUrl>https://github.com/Corey-M/NAudio.Lame</projectUrl>
     <description>Uses libmp3lame.dll from the Lame project to provide MP3 encoding support to NAudio.  Both 64-bit and 32-bit versions of libmp3lame.dll are provided, with platform detection to determine which to use.</description>
     <summary>Implements MP3 writing for NAudio using libmp3lame.</summary>
-    <releaseNotes>v1.1.3 Added a new NativeDLL loader method that can be called with search paths.
+    <releaseNotes>v1.1.4 Fixed VBR presets and added VBR mode to configuration.
+
+v1.1.3 Added a new NativeDLL loader method that can be called with search paths.
 
 v1.1.2 Fixed some issues with sample rate, configuration, short ID3 tags, etc.  Refer to project page for full information.
 

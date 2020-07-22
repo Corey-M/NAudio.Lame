@@ -171,6 +171,16 @@ While there are many more settings available I don't have a clear picture of who
 
 ## Relase Notes
 
+### Version 1.1.4
+
+Released to NuGet 22-Jul-2020
+
+Changes:
+
+* Added `VBR` to `LameConfig` to control VBR mode.
+* Added public `VBRMode` enumeration, mirroring from `LameDLLWrap`.
+* When using presets `V0`-`V9` VBR is automatically enabled.
+
 ### Version 1.1.3
 
 Released to NuGet 14-Jul-2020
