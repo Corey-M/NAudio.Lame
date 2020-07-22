@@ -113,6 +113,8 @@ namespace NAudio.Lame
 				result.SetPreset((int)(_preset ?? LAMEPreset.STANDARD));
 			}
 
+			if (OutputSampleRate != null) result.OutputSampleRate = OutputSampleRate.Value;
+
 			// Scaling
 			if (Scale != null) result.Scale = Scale.Value;
 			if (ScaleLeft != null) result.ScaleLeft = ScaleLeft.Value;
