@@ -61,6 +61,9 @@ namespace NAudio.Lame
 
 		/// <summary>Use free format.</summary>
 		public bool? UseFreeFormat { get; set; }
+
+		/// <summary>Mode to use for VBR.</summary>
+		public VBRMode? VBR { get; set; }
 		#endregion
 
 		#region Frame Parameters
@@ -87,17 +90,26 @@ namespace NAudio.Lame
 		/// <returns></returns>
 		public LameDLLWrap.LibMp3Lame ConfigureDLL(WaveFormat format)
 		{
-			var result = new LameDLLWrap.LibMp3Lame();
-
-			// Input settings
-			result.InputSampleRate = format.SampleRate;
-			result.NumChannels = format.Channels;
+			var result = new LameDLLWrap.LibMp3Lame
+			{
+				// Input settings
+				InputSampleRate = format.SampleRate,
+				NumChannels = format.Channels,
+			};
 
 			// Set quality
 			if (_bitrate != null)
+			{
 				result.BitRate = _bitrate.Value;
+			}
 			else
+			{
+				if (_preset >= LAMEPreset.V9 && _preset <= LAMEPreset.V0 && result.VBR == LameDLLWrap.VBRMode.Off && VBR == null)
+				{
+					result.VBR = LameDLLWrap.VBRMode.Default;
+				}
 				result.SetPreset((int)(_preset ?? LAMEPreset.STANDARD));
+			}
 
 			// Scaling
 			if (Scale != null) result.Scale = Scale.Value;
@@ -110,6 +122,7 @@ namespace NAudio.Lame
 			if (Mode != null) result.Mode = (LameDLLWrap.MPEGMode)Mode.Value;
 			if (ForceMS != null) result.ForceMS = ForceMS.Value;
 			if (UseFreeFormat != null) result.UseFreeFormat = UseFreeFormat.Value;
+			if (VBR != null) result.VBR = (LameDLLWrap.VBRMode)VBR.Value;
 
 			// Frame Parameters
 			if (Copyright != null) result.Copyright = Copyright.Value;
