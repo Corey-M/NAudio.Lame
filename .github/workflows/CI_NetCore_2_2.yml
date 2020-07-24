@@ -44,4 +44,4 @@ jobs:
     - name: Build Lame.Test.Framework
       run: dotnet build Lame.Test.Framework -c:Debug -p:Platform=AnyCPU
     - name: Run Framework tests
-      run: vstest.console.exe Lame.Test.Framework
+      run: vstest.console.exe Lame.Test.Framework\bin\Debug\Lame.Test.Framework.dll
