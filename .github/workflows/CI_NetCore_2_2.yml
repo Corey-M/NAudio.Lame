@@ -16,10 +16,19 @@ jobs:
     steps:
     - name: Check out repository
       uses: actions/checkout@v2
+      
     - name: Setup .NET Core 2.2.108
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 2.2.108
+
+    - uses: warrenbuckley/Setup-MSBuild@v1
+    - uses: darenm/Setup-VSTest@v1
+    - uses: NuGet/setup-nuget@v1.0.2
+      
+    - name: Restore packages
+      run: nuget restore NAudio.Lame.sln
+
     - name: Build LameDLLWrap (Debug|x86)
       run: dotnet build LameDLLWrap -c:Debug -p:Platform=x86
     - name: Build LameDLLWrap (Debug|x64)
@@ -32,10 +41,6 @@ jobs:
       run: dotnet build Lame.Test.Core -c:Debug -p:Platform=AnyCPU
     - name: Run .NET Core tests
       run: dotnet test Lame.Test.Core
-    - name: Setup MSBuild (for testing)
-      uses: warrenbuckley/Setup-MSBuild@v1
-    - name: Setup VSTest Path
-      uses: darenm/Setup-VSTest@v1
     - name: Build Lame.Test.Framework
       run: dotnet build Lame.Test.Framework -c:Debug -p:Platform=AnyCPU
     - name: Run Framework tests
