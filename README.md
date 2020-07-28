@@ -171,6 +171,14 @@ While there are many more settings available I don't have a clear picture of who
 
 ## Relase Notes
 
+### Version 1.1.5
+
+Released to NuGet 29-Jun-2020
+
+Changes:
+
+* Added `OutputSampleRate` to `LameConfig`.
+
 ### Version 1.1.4
 
 Released to NuGet 22-Jul-2020
