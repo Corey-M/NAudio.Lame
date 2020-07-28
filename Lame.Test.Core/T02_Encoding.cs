@@ -140,5 +140,45 @@ namespace Lame.Test
 				}
 			}
 		}
+
+		/// <summary>Test output sample rate settings are functioning as expected.</summary>
+		/// <remarks>Test for PR #48</remarks>
+		[TestMethod]
+		public void TC04_OutputSampleRate()
+		{
+			Stream sourceStream;
+			WaveFormat sourceFormat;
+
+			bool TestSampleRate(int rate)
+			{
+				sourceStream.Position = 0;
+				using (var mp3data = new MemoryStream())
+				{
+					using (var writer = new LameMP3FileWriter(mp3data, sourceFormat, new LameConfig { OutputSampleRate = rate }))
+					{
+						sourceStream.CopyTo(writer);
+					}
+
+					mp3data.Position = 0;
+					using (var reader = new Mp3FileReader(mp3data))
+					{
+						return reader.Mp3WaveFormat.SampleRate == rate;
+					}
+				}
+			}
+
+			using (sourceStream = new MemoryStream())
+			{
+				using (var source = new AudioFileReader(SourceFilename))
+				{
+					sourceFormat = source.WaveFormat;
+					source.CopyTo(sourceStream);
+				}
+
+				Assert.IsTrue(TestSampleRate(22050));
+				Assert.IsTrue(TestSampleRate(11025));
+				Assert.IsTrue(TestSampleRate(8000));
+			}
+		}
 	}
 }
