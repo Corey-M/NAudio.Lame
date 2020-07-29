@@ -87,6 +87,24 @@ namespace NAudio.Lame
 		public ID3TagData ID3 { get; set; }
 		#endregion
 
+		#region VBR Control
+		/// <summary> Minimum variable bit rate (only valid if using a VBR preset) </summary>
+		public int? VBRMinimumBitRate { get; set; }
+
+		/// <summary> Minimum variable bit rate (only valid if using a VBR preset) </summary>
+		public int? VBRMaximumBitRate { get; set; }
+
+		/// <summary> Strictly enforce the minimum variable BitRate </summary>
+		public bool? VBRForceMinimum { get; set; }
+
+		/// <summary>
+		/// Internal algorithm quality setting 0..9.
+		/// 0 = slowest algorithms, but potentially highest quality
+		/// 9 = faster algorithms, very poor quality
+		/// </summary>
+		public int? VBRAlgorithmQuality { get; set; }
+		#endregion
+
 		#region DLL initialisation
 		/// <summary>Create <see cref="LibMp3Lame"/> and configure it.</summary>
 		/// <returns></returns>
@@ -127,6 +145,17 @@ namespace NAudio.Lame
 			if (ForceMS != null) result.ForceMS = ForceMS.Value;
 			if (UseFreeFormat != null) result.UseFreeFormat = UseFreeFormat.Value;
 			if (VBR != null) result.VBR = (LameDLLWrap.VBRMode)VBR.Value;
+
+			// VBR Control
+			if (VBRMinimumBitRate != null) result.VBRMinBitrateKbps = VBRMinimumBitRate.Value;
+			if (VBRMaximumBitRate != null) result.VBRMaxBitrateKbps = VBRMaximumBitRate.Value;
+			if (VBRForceMinimum != null) result.VBRHardMin = VBRForceMinimum.Value;
+			if (VBRAlgorithmQuality != null)
+			{
+				// ignore settings that are out of range
+				if (VBRAlgorithmQuality.Value >= 0 && VBRAlgorithmQuality.Value <= 9)
+					result.VBRQualityLevel = VBRAlgorithmQuality.Value;
+			}
 
 			// Frame Parameters
 			if (Copyright != null) result.Copyright = Copyright.Value;
