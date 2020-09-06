@@ -1,4 +1,5 @@
 ﻿using NAudio.Wave;
+using System;
 
 namespace NAudio.Lame
 {
@@ -33,8 +34,40 @@ namespace NAudio.Lame
 					_preset = null;
 			}
 		}
+		
 		/// <summary>Select output sampling frequency. If not specified, LAME will automatically resample the input when using high compression ratios.</summary>
 		public int? OutputSampleRate { get; set; }
+		#endregion
+
+		#region Variable Bitrate (VBR/ABR) Control
+		/// <summary>Mode to use for VBR.</summary>
+		public VBRMode? VBR { get; set; }
+
+		/// <summary>Target bitrate when <see cref="VBR"/> is set to <see cref="VBRMode.ABR"/></summary>
+		public int? ABRRateKbps { get; set; }
+
+		/// <summary>Minimum bitrate in kbps</summary>
+		public int? VBRMinimumRateKbps { get; set; }
+
+		/// <summary>Maximum bitrate in kbps</summary>
+		public int? VBRMaximumRateKbps { get; set; }
+
+		/// <summary>If true then <see cref="VBRMinimumRateKbps"/> is a hard limit, otherwise analog silence will produce lower bitrate frames.</summary>
+		public bool? VBREnforceMinimum { get; set; }
+
+		private int? _vbrquality;
+		/// <summary>VBR algoritm quality, 0 (highest) to 9 (lowest)</summary>
+		public int? VBRQuality
+		{
+			get => _vbrquality;
+			set
+			{
+				if (value == null)
+					_vbrquality = null;
+				else
+					_vbrquality = Math.Max(0, Math.Min(9, value.Value));
+			}
+		}
 		#endregion
 
 		#region Input settings
@@ -46,6 +79,20 @@ namespace NAudio.Lame
 
 		/// <summary>Right channel amplification.</summary>
 		public float? ScaleRight { get; set; }
+		#endregion
+
+		#region Filtering
+		/// <summary>Frequency in Hz to apply low-pass filter.  -1 to disable, 0 to auto-select</summary>
+		public int? LowPassFreq { get; set; }
+
+		/// <summary>Width of transition band in Hz.</summary>
+		public int? LowPassWidth { get; set; }
+
+		/// <summary>Frequency in Hz to apply high-pass filter. -1 to disable, 0 to auto-select.</summary>
+		public int? HighPassFreq { get; set; }
+
+		/// <summary>Width of transition band in Hz.</summary>
+		public int? HighPassWidth { get; set; }
 		#endregion
 
 		#region General Control
@@ -63,9 +110,6 @@ namespace NAudio.Lame
 
 		/// <summary>Use free format.</summary>
 		public bool? UseFreeFormat { get; set; }
-
-		/// <summary>Mode to use for VBR.</summary>
-		public VBRMode? VBR { get; set; }
 		#endregion
 
 		#region Frame Parameters
@@ -115,10 +159,27 @@ namespace NAudio.Lame
 
 			if (OutputSampleRate != null) result.OutputSampleRate = OutputSampleRate.Value;
 
+			// VBR configuration
+			if (VBR != null)
+			{
+				result.VBR = (LameDLLWrap.VBRMode)VBR.Value;
+				if (VBR == VBRMode.ABR && ABRRateKbps != null) result.VBRMeanBitrateKbps = ABRRateKbps.Value;
+				if (VBRMinimumRateKbps != null) result.VBRMinBitrateKbps = VBRMinimumRateKbps.Value;
+				if (VBRMaximumRateKbps != null) result.VBRMaxBitrateKbps = VBRMaximumRateKbps.Value;
+				if (VBREnforceMinimum != null) result.VBRHardMin = VBREnforceMinimum.Value;
+				if (VBRQuality != null) result.VBRQualityLevel = VBRQuality.Value;
+			}
+
 			// Scaling
 			if (Scale != null) result.Scale = Scale.Value;
 			if (ScaleLeft != null) result.ScaleLeft = ScaleLeft.Value;
 			if (ScaleRight != null) result.ScaleRight = ScaleRight.Value;
+
+			// Filtering
+			if (LowPassFreq != null) result.LowPassFreq = LowPassFreq.Value;
+			if (LowPassWidth != null) result.LowPassWidth = LowPassWidth.Value;
+			if (HighPassFreq != null) result.HighPassFreq = HighPassFreq.Value;
+			if (HighPassWidth != null) result.HighPassWidth = HighPassWidth.Value;
 
 			// General Control
 			if (Analysis != null) result.Analysis = Analysis.Value;
@@ -126,8 +187,7 @@ namespace NAudio.Lame
 			if (Mode != null) result.Mode = (LameDLLWrap.MPEGMode)Mode.Value;
 			if (ForceMS != null) result.ForceMS = ForceMS.Value;
 			if (UseFreeFormat != null) result.UseFreeFormat = UseFreeFormat.Value;
-			if (VBR != null) result.VBR = (LameDLLWrap.VBRMode)VBR.Value;
-
+			
 			// Frame Parameters
 			if (Copyright != null) result.Copyright = Copyright.Value;
 			if (Original != null) result.Original = Original.Value;

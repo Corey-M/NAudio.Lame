@@ -4,6 +4,8 @@ using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Lame.Test
 {
@@ -11,6 +13,59 @@ namespace Lame.Test
 	public class T02_Encoding
 	{
 		private const string SourceFilename = @"Test.wav";
+
+		private static Stream EncodeSampleFile(LameConfig config, int copies = 1)
+		{
+			var mp3data = new MemoryStream();
+
+			using (var source = new AudioFileReader(SourceFilename))
+			using (var mp3writer = new LameMP3FileWriter(mp3data, source.WaveFormat, config))
+			{
+				for (int i = 0; i < copies; i++)
+				{
+					source.Position = 0;
+					source.CopyTo(mp3writer);
+				}
+			}
+
+			mp3data.Position = 0;
+			return mp3data;
+		}
+
+		private static Stream EncodeSilence(LameConfig config, WaveFormat format, int seconds = 1)
+		{
+			var mp3data = new MemoryStream();
+
+			using (var mp3writer = new LameMP3FileWriter(mp3data, format, config))
+			{
+				var bfr = new byte[format.AverageBytesPerSecond * seconds];
+				mp3writer.Write(bfr, 0, bfr.Length);
+			}
+
+			mp3data.Position = 0;
+			return mp3data;
+		}
+
+		private static Mp3Frame[] StreamToFrames(Stream stream, bool readData = false)
+		{
+			IEnumerable<Mp3Frame> iterator()
+			{
+				stream.Position = 0;
+				while (stream.Position < stream.Length)
+				{
+					Mp3Frame next = null;
+					try { next = Mp3Frame.LoadFromStream(stream, readData); }
+					catch { }
+					if (next != null)
+						yield return next;
+				}
+			}
+			
+			using (stream)
+			{
+				return iterator().Skip(1).ToArray();
+			}
+		}
 
 		[TestMethod]
 		public void TC01_EncodeStream()
@@ -63,22 +118,13 @@ namespace Lame.Test
 		{
 			bool TestFormat(WaveFormat format)
 			{
-				using (var mp3data = new MemoryStream())
+				using (var mp3data = EncodeSilence(new LameConfig { Preset = LAMEPreset.STANDARD }, format, 1))
+				using (var reader = new Mp3FileReader(mp3data))
 				{
-					using (var writer = new LameMP3FileWriter(mp3data, format, LAMEPreset.STANDARD))
-					{
-						var bfr = new byte[format.AverageBytesPerSecond];
-						writer.Write(bfr, 0, bfr.Length);
-					}
-
-					mp3data.Position = 0;
-					using (var reader = new Mp3FileReader(mp3data))
-					{
-						var encodedFormat = format;
-						return
-							(encodedFormat.SampleRate == format.SampleRate) &&
-							(encodedFormat.Channels == format.Channels);
-					}
+					var encodedFormat = format;
+					return
+						(encodedFormat.SampleRate == format.SampleRate) &&
+						(encodedFormat.Channels == format.Channels);
 				}
 			}
 
@@ -102,32 +148,18 @@ namespace Lame.Test
 			var presets = new[] { LAMEPreset.STANDARD, LAMEPreset.EXTREME, LAMEPreset.ABR_160, LAMEPreset.V1, LAMEPreset.V4, LAMEPreset.V6, LAMEPreset.V9 };
 			var results = new Dictionary<LAMEPreset, long>();
 
-			WaveFormat sourceFormat;
-			using (var srcms = new MemoryStream())
+			foreach (var preset in presets)
 			{
-				using (var source = new AudioFileReader(SourceFilename))
-				{
-					sourceFormat = source.WaveFormat;
-					source.CopyTo(srcms);
-				}
+				var config = new LameConfig { Preset = preset };
+				if (preset == LAMEPreset.STANDARD)
+					config.BitRate = 128;
 
-				foreach (var preset in presets)
+				using (var mp3data = EncodeSampleFile(config))
 				{
-					var config = new LameConfig { Preset = preset };
-					if (preset == LAMEPreset.STANDARD)
-						config.BitRate = 128;
-
-					using (var mp3data = new MemoryStream())
-					{
-						using (var mp3writer = new LameMP3FileWriter(mp3data, sourceFormat, preset))
-						{
-							srcms.Position = 0;
-							srcms.CopyTo(mp3writer);
-						}
-						results[preset] = mp3data.Length;
-					}
+					results[preset] = mp3data.Length;
 				}
 			}
+
 			// Compare encoded sizes for all combinations of presets
 			for (int i = 0; i < presets.Length - 2; i++)
 			{
@@ -146,38 +178,69 @@ namespace Lame.Test
 		[TestMethod]
 		public void TC04_OutputSampleRate()
 		{
-			Stream sourceStream;
-			WaveFormat sourceFormat;
-
 			bool TestSampleRate(int rate)
 			{
-				sourceStream.Position = 0;
-				using (var mp3data = new MemoryStream())
+				using (var mp3data = EncodeSampleFile(new LameConfig { OutputSampleRate = rate }))
+				using (var reader = new Mp3FileReader(mp3data))
 				{
-					using (var writer = new LameMP3FileWriter(mp3data, sourceFormat, new LameConfig { OutputSampleRate = rate }))
-					{
-						sourceStream.CopyTo(writer);
-					}
-
-					mp3data.Position = 0;
-					using (var reader = new Mp3FileReader(mp3data))
-					{
-						return reader.Mp3WaveFormat.SampleRate == rate;
-					}
+					return reader.Mp3WaveFormat.SampleRate == rate;
 				}
 			}
 
-			using (sourceStream = new MemoryStream())
-			{
-				using (var source = new AudioFileReader(SourceFilename))
-				{
-					sourceFormat = source.WaveFormat;
-					source.CopyTo(sourceStream);
-				}
+			Assert.IsTrue(TestSampleRate(22050));
+			Assert.IsTrue(TestSampleRate(11025));
+			Assert.IsTrue(TestSampleRate(8000));
+		}
 
-				Assert.IsTrue(TestSampleRate(22050));
-				Assert.IsTrue(TestSampleRate(11025));
-				Assert.IsTrue(TestSampleRate(8000));
+		[TestMethod]
+		public void TC05_VBRConfig()
+		{
+			WaveFormat testFormat;
+			using (var reader = new AudioFileReader(SourceFilename))
+			{
+				testFormat = reader.WaveFormat;
+			}
+
+			// check that variable encoding produces different bit rates.
+			var frames = StreamToFrames(EncodeSampleFile(new LameConfig { VBR = VBRMode.Default, VBRMaximumRateKbps = 128 }));
+			int minRate = frames.Skip(2).Min(f => f.BitRate);
+			int maxRate = frames.Skip(2).Max(f => f.BitRate);
+			Assert.AreNotEqual(minRate, maxRate);
+			Assert.IsTrue(maxRate <= 128000);
+
+			// Find minimum VBR rate by encoding silence
+			frames = StreamToFrames(EncodeSilence(new LameConfig { VBR = VBRMode.Default }, testFormat, 5));
+			var vbrMinRate = frames.Skip(2).Min(f => f.BitRate);
+
+			// Test minimum rate enforcement
+			frames = StreamToFrames(EncodeSilence(new LameConfig { VBR = VBRMode.Default, VBRMinimumRateKbps = 64, VBREnforceMinimum = true }, testFormat, 5));
+			minRate = frames.Min(f => f.BitRate);
+			Assert.AreNotEqual(vbrMinRate, minRate, $"Expected minimum of 64kpbps, got {minRate / 1000}");
+
+			frames = StreamToFrames(EncodeSilence(new LameConfig { VBR = VBRMode.Default, VBRMinimumRateKbps = 64, VBREnforceMinimum = false }, testFormat, 5));
+			minRate = frames.Min(f => f.BitRate);
+			Assert.AreEqual(vbrMinRate, minRate, $"Expected minimum of {vbrMinRate / 1000}, got {minRate / 1000}");
+
+			// check difference in size between diffent quality settings
+			frames = StreamToFrames(EncodeSampleFile(new LameConfig { VBR = VBRMode.Default, VBRQuality = 0 }, 5));
+			var avgRate0 = frames.Average(f => f.BitRate);
+
+			frames = StreamToFrames(EncodeSampleFile(new LameConfig { VBR = VBRMode.Default, VBRQuality = 9 }, 5));
+			var avgRate9 = frames.Average(f => f.BitRate);
+
+			Assert.AreNotEqual(avgRate0, avgRate9, "Expected rate change between VBR Q0 and Q9");
+		}
+
+		[TestMethod]
+		public void TC06_ABR()
+		{
+			// Simple ABR test
+			for (int rate = 32; rate <= 128; rate += 16)
+			{
+				var frames = StreamToFrames(EncodeSampleFile(new LameConfig { VBR = VBRMode.ABR, ABRRateKbps = rate, VBRQuality = 5 }, 5));
+				var avgRateKbps = frames.Average(f => f.BitRate) / 1000;
+				var deviation = Math.Abs(1 - (avgRateKbps / rate));
+				Assert.IsTrue(deviation < 0.10, $"ABR deviation for {rate}kbps exceeded threshold: {deviation * 100:0.0}%");
 			}
 		}
 	}

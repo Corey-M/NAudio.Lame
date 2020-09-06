@@ -14,6 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{4CB3247B
 	ProjectSection(SolutionItems) = preProject
 		NAudio.Lame.1.1.5.nuspec = NAudio.Lame.1.1.5.nuspec
 		NAudio.Lame.Net4.1.1.5.nuspec = NAudio.Lame.Net4.1.1.5.nuspec
+		NAudio.Lame.1.1.6.nuspec = NAudio.Lame.1.1.6.nuspec
 		NAudio.Lame.targets = NAudio.Lame.targets
 	EndProjectSection
 EndProject
