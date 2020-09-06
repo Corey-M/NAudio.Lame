@@ -12,9 +12,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LameDLLWrap", "LameDLLWrap\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{4CB3247B-DBD1-4E84-A6F5-DF88D39E7764}"
 	ProjectSection(SolutionItems) = preProject
-		NAudio.Lame.1.1.5.nuspec = NAudio.Lame.1.1.5.nuspec
-		NAudio.Lame.Net4.1.1.5.nuspec = NAudio.Lame.Net4.1.1.5.nuspec
 		NAudio.Lame.1.1.6.nuspec = NAudio.Lame.1.1.6.nuspec
+		NAudio.Lame.Net4.1.1.6.nuspec = NAudio.Lame.Net4.1.1.6.nuspec
 		NAudio.Lame.targets = NAudio.Lame.targets
 	EndProjectSection
 EndProject

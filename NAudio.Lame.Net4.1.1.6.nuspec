@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>NAudio.Lame.Net4</id>
-    <version>1.1.5</version>
+    <version>1.1.6</version>
     <authors>Corey Murtagh</authors>
     <owners>Corey Murtagh</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -11,6 +11,8 @@
     <description>Uses libmp3lame.dll from the Lame project to provide MP3 encoding support to NAudio.  Both 64-bit and 32-bit versions of libmp3lame.dll are provided, with platform detection to determine which to use.</description>
     <summary>Implements MP3 writing for NAudio using libmp3lame.</summary>
     <releaseNotes>
+      v1.1.6 Added more VBR encoding options and some basic tests for them.
+
       v1.1.5 Added OutputSampleRate to LameConfig.
 
       v1.1.4 Fixed VBR presets and added VBR mode to configuration.
