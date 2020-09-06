@@ -12,6 +12,9 @@ on:
 jobs:
   ci:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        dnversion: ['2.2.103', '3.0', '3.1.x']
 
     steps:
     - name: Check out repository
@@ -20,7 +23,7 @@ jobs:
     - name: Setup .NET Core 2.2.108
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 2.2.108
+        dotnet-version: ${{ matrix.dnversion }}
 
     - uses: microsoft/setup-msbuild@v1.0.1
       with:
