@@ -171,6 +171,14 @@ While there are many more settings available I don't have a clear picture of who
 
 ## Relase Notes
 
+### Version 1.1.6
+
+Released to NuGet 6-Sep-2020
+
+Changes:
+
+* Added more VBR encoding options and some basic tests for them.
+
 ### Version 1.1.5
 
 Released to NuGet 29-Jun-2020
