@@ -2,15 +2,17 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>NAudio.Lame</id>
-    <version>1.1.6</version>
+    <version>2.0.0-beta2</version>
     <authors>Corey Murtagh</authors>
     <owners>Corey Murtagh</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="file">LICENSE.txt</license>
     <projectUrl>https://github.com/Corey-M/NAudio.Lame</projectUrl>
-    <description>Uses libmp3lame.dll from the Lame project to provide MP3 encoding support to NAudio.  Both 64-bit and 32-bit versions of libmp3lame.dll are provided, with platform detection to determine which to use.</description>
+    <description>Uses libmp3lame.dll from the Lame project to provide MP3 encoding support to NAudio 2.0.  Both 64-bit and 32-bit versions of libmp3lame.dll are provided, with platform detection to determine which to use.</description>
     <summary>Implements MP3 writing for NAudio using libmp3lame.</summary>
-    <releaseNotes>v1.1.6 Added more VBR encoding options and some basic tests for them.
+    <releaseNotes>v2.0.0-beta2 Prerelease build for prerelease NAudio 2.0.0. No feature updates.
+
+v1.1.6 Added more VBR encoding options and some basic tests for them.
 
 v1.1.5 Added OutputSampleRate to LameConfig.
 
@@ -41,12 +43,12 @@ v1.0.3 Added basic ID3 tag support, check the project page for more information.
 v1.0.2 Fixed problem with static initializer not being called in some configurations when run outside of the debugger.
 
 v1.0.1 Added platform detection to allow both 32-bit and 64-bit execution from one package.</releaseNotes>
-    <copyright>Copyright (c) 2013-2020 Corey Murtagh</copyright>
+    <copyright>Copyright (c) 2013-2021 Corey Murtagh</copyright>
     <language>en-AU</language>
     <tags>C# NAudio MP3 Lame Windows</tags>
     <repository type="git" url="https://github.com/Corey-M/NAudio.Lame" />
     <dependencies>
-      <dependency id="NAudio" version="1.10" />
+      <dependency id="NAudio" version="2.0.0-beta2" />
     </dependencies>
   </metadata>
   <files>

@@ -4,6 +4,8 @@
 
 Wrapper for `libmp3lame.dll` to add MP3 encoding support to NAudio on Windows.
 
+**Beta Notice:** This is a beta version built against NAudio 2.0.0-beta2. Interfaces are subject to change without notice.
+
 **IMPORTANT:** Because this wraps Windows native DLLs *it will not work on any operating system.*  It may 
 function with Windows emulation layers but I have never tested this.
 
