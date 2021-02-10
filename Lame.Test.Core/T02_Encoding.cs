@@ -46,6 +46,7 @@ namespace Lame.Test
 			return mp3data;
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Exceptions irrelevant in this case.")]
 		private static Mp3Frame[] StreamToFrames(Stream stream, bool readData = false)
 		{
 			IEnumerable<Mp3Frame> iterator()

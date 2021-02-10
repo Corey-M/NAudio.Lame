@@ -135,19 +135,19 @@ namespace NAudio.Lame
 			: base()
 		{
 			if (format == null)
-				throw new ArgumentNullException("format");
+				throw new ArgumentNullException(nameof(format));
 
 			// check for unsupported wave formats
 			if (format.Channels != 1 && format.Channels != 2)
-				throw new ArgumentException($"Unsupported number of channels {format.Channels}", "format");
+				throw new ArgumentException($"Unsupported number of channels {format.Channels}", nameof(format));
 			if (format.Encoding != WaveFormatEncoding.Pcm && format.Encoding != WaveFormatEncoding.IeeeFloat)
-				throw new ArgumentException($"Unsupported encoding format {format.Encoding}", "format");
+				throw new ArgumentException($"Unsupported encoding format {format.Encoding}", nameof(format));
 			if (format.Encoding == WaveFormatEncoding.Pcm && format.BitsPerSample != 16)
-				throw new ArgumentException($"Unsupported PCM sample size {format.BitsPerSample}", "format");
+				throw new ArgumentException($"Unsupported PCM sample size {format.BitsPerSample}", nameof(format));
 			if (format.Encoding == WaveFormatEncoding.IeeeFloat && format.BitsPerSample != 32)
-				throw new ArgumentException($"Unsupported Float sample size {format.BitsPerSample}", "format");
+				throw new ArgumentException($"Unsupported Float sample size {format.BitsPerSample}", nameof(format));
 			if (format.SampleRate < 8000 || format.SampleRate > 48000)
-				throw new ArgumentException($"Unsupported Sample Rate {format.SampleRate}", "format");
+				throw new ArgumentException($"Unsupported Sample Rate {format.SampleRate}", nameof(format));
 
 			// select encoder function that matches data format
 			if (format.Encoding == WaveFormatEncoding.Pcm)
@@ -167,7 +167,7 @@ namespace NAudio.Lame
 
 			// Set base properties
 			_inputFormat = format;
-			_outStream = outStream ?? throw new ArgumentNullException("outStream");
+			_outStream = outStream ?? throw new ArgumentNullException(nameof(outStream));
 			_disposeOutput = false;
 
 			// Allocate buffers based on sample rate
@@ -340,6 +340,7 @@ namespace NAudio.Lame
 		/// <param name="framesize">Size of frame</param>
 		/// <returns>0 on success, non-zero on failure</returns>
 		/// <remarks>Base algorithm copied from the LAME source: https://sourceforge.net/p/lame/svn/HEAD/tree/trunk/lame/Dll/BladeMP3EncDLL.c#l768 </remarks>
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Sometimes you just have to catch them all.")]
 		private int SkipId3v2(int framesize)
 		{
 			try
@@ -531,7 +532,6 @@ namespace NAudio.Lame
 		/// </para>
 		/// </remarks>
 		// uncomment to suppress CodeAnalysis warnings for the ArrayUnion class:
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Portability", "CA1900:ValueTypeFieldsShouldBePortable", Justification = "This design breaks portability, but is never exposed outside the class.  Tested on x86 and x64 architectures.")]
 		[StructLayout(LayoutKind.Explicit)]
 		private class ArrayUnion
 		{
