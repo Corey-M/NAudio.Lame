@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Lame.Test.Framework")]
-[assembly: AssemblyCopyright("Copyright © 2017-2020 Corey Murtagh")]
+[assembly: AssemblyCopyright("Copyright © 2017-2021 Corey Murtagh")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

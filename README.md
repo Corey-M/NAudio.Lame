@@ -2,12 +2,10 @@
 [![Build Status](https://github.com/Corey-M/NAudio.Lame/workflows/.NET%20Core%202.2/badge.svg)](https://github.com/Corey-M/NAudio.Lame/actions?workflow=.NET%20Core%202.2)
 ## Description
 
-Wrapper for `libmp3lame.dll` to add MP3 encoding support to NAudio on Windows.
+Wrapper for `libmp3lame.dll` to add MP3 encoding support to NAudio 2.0 on Windows.
 
-**Beta Notice:** This is a beta version built against NAudio 2.0.0-beta2. Interfaces are subject to change without notice.
-
-**IMPORTANT:** Because this wraps Windows native DLLs *it will not work on any operating system.*  It may 
-function with Windows emulation layers but I have never tested this.
+**IMPORTANT:** Because this wraps Windows native DLLs *it will not work on any other operating system.*
+It may function with Windows emulation layers but I have never tested this.
 
 Includes both 32-bit and 64-bit versions of Windows native `libmp3lame.dll` (named `libmp3lame.32.dll` and `libmp3lame.64.dll` respectively), both of which will be copied to the output folder on build.
 If you are compiling for a specific CPU target - `x86` or `x64` - then you only need to distribute the appropriate version.
@@ -172,6 +170,14 @@ From v1.1.1 there is a new `LameConfig` class which has a variety of settings th
 While there are many more settings available I don't have a clear picture of who wants what.  If you're desperate for the quantization or filtering settings let me know.
 
 ## Relase Notes
+
+### Version 2.0.0
+
+Released to NuGet 10-Feb-2021
+
+Changes:
+
+* Binding and support for NAudio 2.0.0.
 
 ### Version 1.1.6
 
