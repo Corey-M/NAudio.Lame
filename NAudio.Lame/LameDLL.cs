@@ -77,12 +77,23 @@ namespace NAudio.Lame
 				if (!LameDLLImpl.IsWindowsOS)
 					return false;
 
+				// Fix issue with NAudio.Lame loaded as in-memory assembly (Issue #59)
+				string asmPath = default;
+				try
+				{
+					asmPath = Path.GetDirectoryName(typeof(LameDLL).Assembly.Location);
+				}
+				catch { }
+
 				var paths = rootPaths
 					.Concat(new[]
 					{
 						AppDomain.CurrentDomain.BaseDirectory,
-						Path.GetDirectoryName(typeof(LameDLL).Assembly.Location)
-					}).ToArray();
+						asmPath
+					})
+					.Where(p => !string.IsNullOrEmpty(p))
+					.Distinct()
+					.ToArray();
 
 				var dllname = $"libmp3lame.{(Environment.Is64BitProcess ? "64" : "32")}.dll";
 
