@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29519.181
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NAudio.Lame", "NAudio.Lame\NAudio.Lame.csproj", "{17FF69B9-D0A6-440E-B379-2A1327D5E0CD}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -12,7 +12,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LameDLLWrap", "LameDLLWrap\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{4CB3247B-DBD1-4E84-A6F5-DF88D39E7764}"
 	ProjectSection(SolutionItems) = preProject
-		NAudio.Lame.2.0.0.nuspec = NAudio.Lame.2.0.0.nuspec
+		NAudio.Lame.2.0.1.nuspec = NAudio.Lame.2.0.1.nuspec
 		NAudio.Lame.targets = NAudio.Lame.targets
 	EndProjectSection
 EndProject

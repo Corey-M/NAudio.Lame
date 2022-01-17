@@ -171,6 +171,14 @@ While there are many more settings available I don't have a clear picture of who
 
 ## Relase Notes
 
+### Version 2.0.1
+
+Released to NuGet 18-Jan-2022
+
+Changes:
+
+* Fix exception when NAudio.Lame loaded as memory assembly.
+
 ### Version 2.0.0
 
 Released to NuGet 10-Feb-2021
