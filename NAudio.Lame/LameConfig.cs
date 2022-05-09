@@ -10,6 +10,9 @@ namespace NAudio.Lame
 	{
 		#region Quality
 		private LAMEPreset? _preset = null;
+
+		public EncoderQuality Quality { get; set; } = EncoderQuality.Standard;
+
 		/// <summary>Compression preset, clears <see cref="BitRate"/> if set, defaults to STANDARD</summary>
 		public LAMEPreset? Preset
 		{
@@ -34,6 +37,7 @@ namespace NAudio.Lame
 					_preset = null;
 			}
 		}
+
 		
 		/// <summary>Select output sampling frequency. If not specified, LAME will automatically resample the input when using high compression ratios.</summary>
 		public int? OutputSampleRate { get; set; }
@@ -144,6 +148,9 @@ namespace NAudio.Lame
 			};
 
 			// Set quality
+
+			result.Quality = (int)Quality;
+
 			if (_bitrate != null)
 			{
 				result.BitRate = _bitrate.Value;
