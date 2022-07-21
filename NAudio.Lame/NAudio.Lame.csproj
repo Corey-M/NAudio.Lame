@@ -9,11 +9,6 @@
     <Description>Uses libmp3lame.dll from the Lame project to provide MP3 encoding support to NAudio.  Both 64-bit and 32-bit versions of libmp3lame.dll are provided, with platform detection to determine which to use.</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
-  
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <EmbeddedResource Include="..\LameDLLWrap\bin\x86\Debug\netstandard2.0\LameDLLWrap.dll" Link="x86.LameDLLWrap.dll" />
-    <EmbeddedResource Include="..\LameDLLWrap\bin\x64\Debug\netstandard2.0\LameDLLWrap.dll" Link="x64.LameDLLWrap.dll" />
-  </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <EmbeddedResource Include="..\LameDLLWrap\bin\x86\Release\netstandard2.0\LameDLLWrap.dll" Link="x86.LameDLLWrap.dll" />
@@ -48,12 +43,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LameDLLWrap\LameDLLWrap.csproj">
-      <Private>false</Private>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <ExcludeAssets></ExcludeAssets>
-      <PrivateAssets>*.dll</PrivateAssets>
-    </ProjectReference>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

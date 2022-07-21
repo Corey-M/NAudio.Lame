@@ -14,8 +14,4 @@
   <PropertyGroup Condition="'$(Platform)'=='x64'">
     <DefineConstants>X64</DefineConstants>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="NAudio.Core" Version="2.0.0" />
-  </ItemGroup>
 </Project>

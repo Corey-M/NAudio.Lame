@@ -444,12 +444,9 @@ namespace NAudio.Lame
 
 			// check size of ID3 tag, if too large write it ourselves.
 			byte[] data = _lame.ID3GetID3v2Tag();
-			if (data?.Length >= 32768)
-			{
-				_lame.ID3WriteTagAutomatic = false;
 
-				_outStream.Write(data, 0, data.Length);
-			}
+			_lame.ID3WriteTagAutomatic = false;
+			_outStream.Write(data, 0, data.Length);
 		}
 
 		/// <summary>
@@ -468,7 +465,7 @@ namespace NAudio.Lame
 
 		private static Dictionary<int, string> _genres;
 		/// <summary>Dictionary of Genres supported by LAME's ID3 tag support</summary>
-		public static Dictionary<int, string> Genres
+		public Dictionary<int, string> Genres
 		{
 			get
 			{

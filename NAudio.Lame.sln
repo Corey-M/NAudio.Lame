@@ -4,11 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NAudio.Lame", "NAudio.Lame\NAudio.Lame.csproj", "{17FF69B9-D0A6-440E-B379-2A1327D5E0CD}"
-	ProjectSection(ProjectDependencies) = postProject
-		{891B880A-0A85-48A9-B785-5BCE5DCEBC22} = {891B880A-0A85-48A9-B785-5BCE5DCEBC22}
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LameDLLWrap", "LameDLLWrap\LameDLLWrap.csproj", "{891B880A-0A85-48A9-B785-5BCE5DCEBC22}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{4CB3247B-DBD1-4E84-A6F5-DF88D39E7764}"
 	ProjectSection(SolutionItems) = preProject
@@ -49,16 +44,6 @@ Global
 		{17FF69B9-D0A6-440E-B379-2A1327D5E0CD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{17FF69B9-D0A6-440E-B379-2A1327D5E0CD}.Release|x64.ActiveCfg = Release|Any CPU
 		{17FF69B9-D0A6-440E-B379-2A1327D5E0CD}.Release|x86.ActiveCfg = Release|Any CPU
-		{891B880A-0A85-48A9-B785-5BCE5DCEBC22}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{891B880A-0A85-48A9-B785-5BCE5DCEBC22}.Debug|x64.ActiveCfg = Debug|x64
-		{891B880A-0A85-48A9-B785-5BCE5DCEBC22}.Debug|x64.Build.0 = Debug|x64
-		{891B880A-0A85-48A9-B785-5BCE5DCEBC22}.Debug|x86.ActiveCfg = Debug|x86
-		{891B880A-0A85-48A9-B785-5BCE5DCEBC22}.Debug|x86.Build.0 = Debug|x86
-		{891B880A-0A85-48A9-B785-5BCE5DCEBC22}.Release|Any CPU.ActiveCfg = Release|x86
-		{891B880A-0A85-48A9-B785-5BCE5DCEBC22}.Release|x64.ActiveCfg = Release|x64
-		{891B880A-0A85-48A9-B785-5BCE5DCEBC22}.Release|x64.Build.0 = Release|x64
-		{891B880A-0A85-48A9-B785-5BCE5DCEBC22}.Release|x86.ActiveCfg = Release|x86
-		{891B880A-0A85-48A9-B785-5BCE5DCEBC22}.Release|x86.Build.0 = Release|x86
 		{DF68A50E-1072-4C6B-89F7-6B7CCDB7AE5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DF68A50E-1072-4C6B-89F7-6B7CCDB7AE5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF68A50E-1072-4C6B-89F7-6B7CCDB7AE5D}.Debug|x64.ActiveCfg = Debug|Any CPU
