@@ -1226,26 +1226,26 @@ namespace LameDLLWrap
 		internal static extern void id3tag_set_pad(IntPtr context, int n);
 
 		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-		internal static extern void id3tag_set_title(IntPtr context, string title);
+		internal static extern void id3tag_set_title(IntPtr context, [MarshalAs(UnmanagedType.LPUTF8Str)] string title);
 
 		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-		internal static extern void id3tag_set_artist(IntPtr context, string artist);
+		internal static extern void id3tag_set_artist(IntPtr context, [MarshalAs(UnmanagedType.LPUTF8Str)] string artist);
 
 		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-		internal static extern void id3tag_set_album(IntPtr context, string album);
+		internal static extern void id3tag_set_album(IntPtr context, [MarshalAs(UnmanagedType.LPUTF8Str)] string album);
 
 		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-		internal static extern void id3tag_set_year(IntPtr context, string year);
+		internal static extern void id3tag_set_year(IntPtr context, [MarshalAs(UnmanagedType.LPUTF8Str)] string year);
 
 		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-		internal static extern int id3tag_set_comment(IntPtr context, string comment);
+		internal static extern int id3tag_set_comment(IntPtr context, [MarshalAs(UnmanagedType.LPUTF8Str)] string comment);
 
 		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 		internal static extern int id3tag_set_comment_utf16(IntPtr context, [MarshalAs(UnmanagedType.LPStr)]string lang, byte[] description, byte[] text);
 
 		// return -1 result if track number is out of ID3v1 range and ignored for ID3v1
 		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-		internal static extern int id3tag_set_track(IntPtr context, string track);
+		internal static extern int id3tag_set_track(IntPtr context, [MarshalAs(UnmanagedType.LPUTF8Str)] string track);
 
 		// return non-zero result if genre name or number is invalid
 		// result 0: OK
@@ -1253,11 +1253,11 @@ namespace LameDLLWrap
 		// result -2: no valid ID3v1 genre name, mapped to ID3v1 'Other'
 		//            but taken as-is for ID3v2 genre tag
 		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-		internal static extern int id3tag_set_genre(IntPtr context, string genre);
+		internal static extern int id3tag_set_genre(IntPtr context, [MarshalAs(UnmanagedType.LPUTF8Str)] string genre);
 
 		// return non-zero result if field name is invalid
 		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-		internal static extern int id3tag_set_fieldvalue(IntPtr context, string value);
+		internal static extern int id3tag_set_fieldvalue(IntPtr context, [MarshalAs(UnmanagedType.LPUTF8Str)] string value);
 
 		// experimental
 		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
