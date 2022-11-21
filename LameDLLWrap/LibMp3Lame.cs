@@ -577,31 +577,62 @@ namespace LameDLLWrap
 		/// <param name="title">Value to set</param>
 		public void ID3SetTitle(string title)
 		{
-			NativeMethods.id3tag_set_title(context, title);
-		}
+			// XXX: Should we use Encoding.ASCII instead of UTF8?
+			// Because ID3 spec doesn't even say they support UTF8 OOTB
+			// but Latin-1 (default) and UCS2 (ID3V2 only)
+            if (Encoding.UTF8.GetByteCount(title) == title.Length)
+            {
+                NativeMethods.id3tag_set_title(context, title);
+            }
+            else
+            {
+                ID3SetTextInfo("TIT2", title);
+            }
+        }
 
 		public void ID3SetArtist(string artist)
 		{
-			NativeMethods.id3tag_set_artist(context, artist);
+            if (Encoding.UTF8.GetByteCount(artist) == artist.Length)
+            {
+                NativeMethods.id3tag_set_artist(context, artist);
+            }
+            else
+            {
+                ID3SetTextInfo( "TPE1", artist);
+            }
 		}
 
 		public void ID3SetAlbum(string album)
 		{
-			NativeMethods.id3tag_set_album(context, album);
+            if (Encoding.UTF8.GetByteCount(album) == album.Length)
+            {
+                NativeMethods.id3tag_set_album(context, album);
+            }
+            else
+            {
+                ID3SetTextInfo( "TALB", album);
+            }
 		}
 
 		/// <summary>Set year</summary>
 		/// <param name="year">Year value to set, as string</param>
 		public void ID3SetYear(string year)
 		{
-			NativeMethods.id3tag_set_year(context, year);
+            if (Encoding.UTF8.GetByteCount(year) == year.Length)
+            {
+                NativeMethods.id3tag_set_year(context, year);
+            }
+            else
+            {
+                ID3SetTextInfo("TYER", year);
+            }
 		}
 
 		/// <summary>Set year</summary>
 		/// <param name="year">Year value to set, as integer</param>
 		public void ID3SetYear(int year)
 		{
-			NativeMethods.id3tag_set_year(context, year.ToString());
+            NativeMethods.id3tag_set_year(context, year.ToString());
 		}
 
 		public bool ID3SetComment(string comment)
@@ -615,18 +646,22 @@ namespace LameDLLWrap
 		}
 
 		public bool ID3SetTrack(string track)
-		{
-			return CheckResult(NativeMethods.id3tag_set_track(context, track));
-		}
+        {
+            return Encoding.UTF8.GetByteCount(track) == track.Length
+                ? CheckResult(NativeMethods.id3tag_set_track(context, track))
+                : ID3SetTextInfo("TRCK", track);
+        }
 
 		public bool ID3SetGenre(string genre)
-		{
-			return CheckResult(NativeMethods.id3tag_set_genre(context, genre));
-		}
+        {
+            return Encoding.UTF8.GetByteCount(genre) == genre.Length
+                ? CheckResult(NativeMethods.id3tag_set_genre(context, genre))
+                : ID3SetTextInfo("TCON", genre);
+        }
 
 		public int ID3SetGenre(int genreIndex)
 		{
-			return NativeMethods.id3tag_set_genre(context, genreIndex.ToString());
+            return NativeMethods.id3tag_set_genre(context, genreIndex.ToString());
 		}
 
 		public bool ID3SetFieldValue(string value)
@@ -639,12 +674,22 @@ namespace LameDLLWrap
 			return CheckResult(NativeMethods.id3tag_set_fieldvalue_utf16(context, data));
 		}
 
-		/// <summary>Set albumart of ID3 tag</summary>
-		/// <param name="image">raw image file data</param>
-		/// <returns>True if successful, else false</returns>
-		/// <remarks>Supported formats: JPG, PNG, GIF.
-		/// Max image size: 128KB</remarks>
-		public bool ID3SetAlbumArt(byte[] image)
+        public bool ID3SetTextInfo(string id, string text)
+        {
+            if (Encoding.UTF8.GetByteCount(text) == text.Length)
+                return CheckResult(NativeMethods.id3tag_set_textinfo_latin1(context, id, text));
+
+            // Value is Unicode.  Encode as UCS2 with BOM and terminator.
+            byte[] data = UCS2.GetBytes(text);
+            return CheckResult(NativeMethods.id3tag_set_textinfo_utf16(context, id, data));
+        }
+
+        /// <summary>Set albumart of ID3 tag</summary>
+        /// <param name="image">raw image file data</param>
+        /// <returns>True if successful, else false</returns>
+        /// <remarks>Supported formats: JPG, PNG, GIF.
+        /// Max image size: 128KB</remarks>
+        public bool ID3SetAlbumArt(byte[] image)
 		{
 			return CheckResult(NativeMethods.id3tag_set_albumart(context, image, image.Length));
 		}
