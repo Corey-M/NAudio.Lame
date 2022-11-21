@@ -1267,19 +1267,19 @@ namespace LameDLLWrap
 		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 		internal static extern int id3tag_set_albumart(IntPtr context, [In]byte[] image, int size);
 
-        [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int id3tag_set_textinfo_latin1(IntPtr context, [MarshalAs(UnmanagedType.LPStr)] string id, [MarshalAs(UnmanagedType.LPStr)] string text);
+		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern int id3tag_set_textinfo_latin1(IntPtr context, [MarshalAs(UnmanagedType.LPStr)] string id, [MarshalAs(UnmanagedType.LPStr)] string text);
 
-        [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int id3tag_set_textinfo_utf16(IntPtr context, [MarshalAs(UnmanagedType.LPStr)] string id, byte[] text);
+		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern int id3tag_set_textinfo_utf16(IntPtr context, [MarshalAs(UnmanagedType.LPStr)] string id, byte[] text);
 
-        // lame_get_id3v1_tag copies ID3v1 tag into buffer.
-        // Function returns number of bytes copied into buffer, or number
-        // of bytes required if 'size' is too small.
-        // Function fails, if returned value is larger than 'size'
-        // NOTE:
-        // This function does nothing, if user/LAME disabled ID3v1 tag
-        [DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+		// lame_get_id3v1_tag copies ID3v1 tag into buffer.
+		// Function returns number of bytes copied into buffer, or number
+		// of bytes required if 'size' is too small.
+		// Function fails, if returned value is larger than 'size'
+		// NOTE:
+		// This function does nothing, if user/LAME disabled ID3v1 tag
+		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 		internal static extern int lame_get_id3v1_tag(IntPtr context, [In, Out]byte[] buffer, int size);
 
 		// lame_get_id3v2_tag copies ID3v2 tag into buffer.

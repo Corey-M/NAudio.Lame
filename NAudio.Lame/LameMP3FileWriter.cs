@@ -440,8 +440,7 @@ namespace NAudio.Lame
 				_lame.ID3SetFieldValue($"TIT3={tag.Subtitle}");
 			if (!string.IsNullOrEmpty(tag.AlbumArtist))
 				_lame.ID3SetFieldValue($"TPE2={tag.AlbumArtist}");
-			
-			// Add user-defined tags if present
+            // Add user-defined tags if present
 			foreach (var kv in tag.UserDefinedText)
 			{
 				_lame.ID3SetFieldValue($"TXXX={kv.Key}={kv.Value}");
