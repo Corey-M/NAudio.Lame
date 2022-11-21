@@ -411,13 +411,13 @@ namespace NAudio.Lame
 
 			_lame.ID3Init();
 
-            if (tag.V2Only)
+			if (tag.V2Only)
 				_lame.ID3V2Only();
 
-            foreach (var kv in tag.CustomFields)
-            {
-                _lame.ID3SetFieldValue($"{kv.Key}={kv.Value}");
-            }
+			foreach (var kv in tag.CustomFields)
+			{
+				_lame.ID3SetFieldValue($"{kv.Key}={kv.Value}");
+			}
 
 			// Apply standard ID3 fields
 			if (!string.IsNullOrEmpty(tag.Title))
@@ -440,7 +440,7 @@ namespace NAudio.Lame
 				_lame.ID3SetFieldValue($"TIT3={tag.Subtitle}");
 			if (!string.IsNullOrEmpty(tag.AlbumArtist))
 				_lame.ID3SetFieldValue($"TPE2={tag.AlbumArtist}");
-
+			
 			// Add user-defined tags if present
 			foreach (var kv in tag.UserDefinedText)
 			{
