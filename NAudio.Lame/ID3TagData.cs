@@ -65,5 +65,8 @@ namespace NAudio.Lame
                 UserDefinedText[key] = val;
             }
         }
+
+        public bool V2Only { get; set; } = true;
+        public Dictionary<string, string> CustomFields { get; } = new Dictionary<string, string>();
     }
 }
