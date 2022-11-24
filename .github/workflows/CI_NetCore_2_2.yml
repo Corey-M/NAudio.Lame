@@ -18,19 +18,24 @@ jobs:
 
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       
     - name: Setup .NET Core ${{ matrix.dnversion }}
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: ${{ matrix.dnversion }}
 
-    - uses: microsoft/setup-msbuild@v1.0.1
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.1
       with:
-        vs-version: '16.x'
-    - uses: darenm/Setup-VSTest@v1
-    - uses: NuGet/setup-nuget@v1.0.2
-      
+        vs-version: '[16.0,17.0)'
+
+    - name: Setup VSTest
+      uses: darenm/Setup-VSTest@v1.2
+
+    - name: Setup Nuget
+      uses: NuGet/setup-nuget@v1.0.2
+
     - name: Restore packages
       run: nuget restore NAudio.Lame.sln
 
