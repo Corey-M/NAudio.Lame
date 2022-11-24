@@ -27,8 +27,6 @@ jobs:
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.1
-      with:
-        vs-version: '[16.0,17.0)'
 
     - name: Setup VSTest
       uses: darenm/Setup-VSTest@v1.2
