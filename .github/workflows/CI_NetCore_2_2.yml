@@ -31,9 +31,6 @@ jobs:
     - name: Setup VSTest
       uses: darenm/Setup-VSTest@v1.2
 
-    - name: Setup Nuget
-      uses: NuGet/setup-nuget@v1.0.2
-
     - name: Restore packages
       run: nuget restore NAudio.Lame.sln
 
