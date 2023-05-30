@@ -1,9 +1,9 @@
-﻿using System;
+﻿using LameDLLWrap;
+using NAudio.Wave;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using NAudio.Wave;
-using LameDLLWrap;
-using System.Collections.Generic;
 
 namespace NAudio.Lame
 {
@@ -192,7 +192,7 @@ namespace NAudio.Lame
 
 			_lame?.Dispose();
 			_lame = null;
-			
+
 			if (_disposeOutput)
 			{
 				_outStream?.Dispose();
@@ -247,13 +247,13 @@ namespace NAudio.Lame
 		/// <summary>Non-seekable stream.  Always false.</summary>
 		public override bool CanSeek => false;
 		/// <summary>True when encoder can accept more data</summary>
-		public override bool CanWrite => _outStream != null && _lame != null; 
+		public override bool CanWrite => _outStream != null && _lame != null;
 
 		/// <summary>Dummy Position.  Always 0.</summary>
 		public override long Position
 		{
 			get => 0;
-			set => throw new NotImplementedException(); 
+			set => throw new NotImplementedException();
 		}
 
 		/// <summary>Dummy Length.  Always 0.</summary>
@@ -411,6 +411,13 @@ namespace NAudio.Lame
 
 			_lame.ID3Init();
 
+			if (tag.V2Only)
+				_lame.ID3V2Only();
+
+			// Add custom fields
+			foreach (var kv in tag.CustomFields)
+				_lame.ID3SetFieldValue($"{kv.Key}={kv.Value}");
+
 			// Apply standard ID3 fields
 			if (!string.IsNullOrEmpty(tag.Title))
 				_lame.ID3SetTitle(tag.Title);
@@ -435,19 +442,17 @@ namespace NAudio.Lame
 
 			// Add user-defined tags if present
 			foreach (var kv in tag.UserDefinedText)
-			{
 				_lame.ID3SetFieldValue($"TXXX={kv.Key}={kv.Value}");
-			}
+
 			// Set the album art if supplied
 			if (tag.AlbumArt?.Length > 0)
 				_lame.ID3SetAlbumArt(tag.AlbumArt);
 
-			// check size of ID3 tag, if too large write it ourselves.
+			// If ID3 tag is too large LAME fails to write it correctly, so write it ourselves.
 			byte[] data = _lame.ID3GetID3v2Tag();
 			if (data?.Length >= 32768)
 			{
 				_lame.ID3WriteTagAutomatic = false;
-
 				_outStream.Write(data, 0, data.Length);
 			}
 		}

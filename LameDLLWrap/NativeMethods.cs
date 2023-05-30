@@ -1267,6 +1267,15 @@ namespace LameDLLWrap
 		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
 		internal static extern int id3tag_set_albumart(IntPtr context, [In]byte[] image, int size);
 
+		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern int id3tag_set_textinfo_latin1(IntPtr context, [MarshalAs(UnmanagedType.LPStr), In] string id, [MarshalAs(UnmanagedType.LPStr), In] string text);
+
+		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern int id3tag_set_textinfo_utf16(IntPtr context, [MarshalAs(UnmanagedType.LPStr), In] string id, [MarshalAs(UnmanagedType.LPWStr), In] string text);
+
+		[DllImport(libname, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern int id3tag_set_textinfo_utf16(IntPtr context, [MarshalAs(UnmanagedType.LPStr), In] string id, byte[] bytes);
+
 		// lame_get_id3v1_tag copies ID3v1 tag into buffer.
 		// Function returns number of bytes copied into buffer, or number
 		// of bytes required if 'size' is too small.

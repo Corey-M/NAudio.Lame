@@ -343,16 +343,13 @@ namespace LameDLLWrap
 		#endregion
 
 		#region Filtering control
-#pragma warning disable 1591
 		public int LowPassFreq { get { return NativeMethods.lame_get_lowpassfreq(context); } set { Setter(NativeMethods.lame_set_lowpassfreq, value); } }
 		public int LowPassWidth { get { return NativeMethods.lame_get_lowpasswidth(context); } set { Setter(NativeMethods.lame_set_lowpasswidth, value); } }
 		public int HighPassFreq { get { return NativeMethods.lame_get_highpassfreq(context); } set { Setter(NativeMethods.lame_set_highpassfreq, value); } }
 		public int HighPassWidth { get { return NativeMethods.lame_get_highpasswidth(context); } set { Setter(NativeMethods.lame_set_highpasswidth, value); } }
-#pragma warning restore 1591
 		#endregion
 
 		#region Internal state variables, read only
-#pragma warning disable 1591
 		public MPEGVersion Version { get { return NativeMethods.lame_get_version(context); } }
 		public int EncoderDelay { get { return NativeMethods.lame_get_encoder_delay(context); } }
 		public int EncoderPadding { get { return NativeMethods.lame_get_encoder_padding(context); } }
@@ -365,7 +362,6 @@ namespace LameDLLWrap
 		public float PeakSample { get { return NativeMethods.lame_get_PeakSample(context); } }
 		public int NoClipGainChange { get { return NativeMethods.lame_get_noclipGainChange(context); } }
 		public float NoClipScale { get { return NativeMethods.lame_get_noclipScale(context); } }
-#pragma warning restore 1591
 		#endregion
 
 		#endregion
@@ -504,6 +500,28 @@ namespace LameDLLWrap
 		#region ID3 tag support
 		private static GenreCallback id3GenreCallback = null;
 
+		/// <summary>.NET Standard 2.0 does not include Latin1 in the standing Encoding list, but supports it.</summary>
+		private static readonly Encoding Latin1 = Encoding.GetEncoding("Latin1");
+
+		private static bool IsLatin1(string text) 
+		{
+			if (text is null)
+				return true;
+			byte[] bytes = Latin1.GetBytes(text);
+			return bytes.Length == text.Length && Latin1.GetString(bytes) == text;
+		}
+
+		/// <summary>Add TextInfo with <paramref name="id"/>, as either Latin1 or UCS2 (with BOM/terminator) depending on content.</summary>
+		/// <param name="id">TextInfo identifier.</param>
+		/// <param name="text">Content.</param>
+		/// <returns>Result of attempting to add TextInfo tag.</returns>
+		public bool ID3SetTextInfo(string id, string text)
+		{
+			if (IsLatin1(text))
+				return CheckResult(NativeMethods.id3tag_set_textinfo_latin1(context, id, text));
+			return CheckResult(NativeMethods.id3tag_set_textinfo_utf16(context, id, UCS2.GetBytes(text)));
+		}
+
 		private static void ID3Genre_proxy(int index, string genre, IntPtr cookie)
 		{
 			id3GenreCallback?.Invoke(index, genre);
@@ -577,24 +595,36 @@ namespace LameDLLWrap
 		/// <param name="title">Value to set</param>
 		public void ID3SetTitle(string title)
 		{
-			NativeMethods.id3tag_set_title(context, title);
+			if (IsLatin1(title))
+				NativeMethods.id3tag_set_title(context, title);
+			else
+				ID3SetTextInfo("TIT2", title);
 		}
 
 		public void ID3SetArtist(string artist)
 		{
-			NativeMethods.id3tag_set_artist(context, artist);
+			if (IsLatin1(artist))
+				NativeMethods.id3tag_set_artist(context, artist);
+			else
+				ID3SetTextInfo("TPE1", artist);
 		}
 
 		public void ID3SetAlbum(string album)
 		{
-			NativeMethods.id3tag_set_album(context, album);
+			if (IsLatin1(album))
+				NativeMethods.id3tag_set_album(context, album);
+			else
+				ID3SetTextInfo("TALB", album);
 		}
 
 		/// <summary>Set year</summary>
 		/// <param name="year">Year value to set, as string</param>
 		public void ID3SetYear(string year)
 		{
-			NativeMethods.id3tag_set_year(context, year);
+			if (IsLatin1(year))
+				NativeMethods.id3tag_set_year(context, year);
+			else
+				ID3SetTextInfo("TYER", year);
 		}
 
 		/// <summary>Set year</summary>
@@ -606,7 +636,7 @@ namespace LameDLLWrap
 
 		public bool ID3SetComment(string comment)
 		{
-			if (Encoding.UTF8.GetByteCount(comment) == comment.Length)
+			if (IsLatin1(comment))
 				return CheckResult(NativeMethods.id3tag_set_comment(context, comment));
 
 			// Comment is Unicode.  Encode as UCS2 with BOM and terminator.
@@ -616,12 +646,16 @@ namespace LameDLLWrap
 
 		public bool ID3SetTrack(string track)
 		{
-			return CheckResult(NativeMethods.id3tag_set_track(context, track));
+			if (IsLatin1(track))
+				return CheckResult(NativeMethods.id3tag_set_track(context, track));
+			return ID3SetTextInfo("TRCK", track);
 		}
 
 		public bool ID3SetGenre(string genre)
 		{
-			return CheckResult(NativeMethods.id3tag_set_genre(context, genre));
+			if (IsLatin1(genre))
+				return CheckResult(NativeMethods.id3tag_set_genre(context, genre));
+			return ID3SetTextInfo("TCON", genre);
 		}
 
 		public int ID3SetGenre(int genreIndex)
@@ -631,7 +665,7 @@ namespace LameDLLWrap
 
 		public bool ID3SetFieldValue(string value)
 		{
-			if (Encoding.UTF8.GetByteCount(value) == value.Length)
+			if (IsLatin1(value))
 				return CheckResult(NativeMethods.id3tag_set_fieldvalue(context, value));
 
 			// Value is Unicode.  Encode as UCS2 with BOM and terminator.
