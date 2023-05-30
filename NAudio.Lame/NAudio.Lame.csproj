@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Platforms>AnyCPU</Platforms>
-    <Version>2.0.1</Version>
+    <Version>2.1.0</Version>
     <Authors>Corey Murtagh</Authors>
-    <Copyright>Copyright © 2013-2022 Corey Murtagh</Copyright>
+    <Copyright>Copyright © 2013-2023 Corey Murtagh</Copyright>
     <Description>Uses libmp3lame.dll from the Lame project to provide MP3 encoding support to NAudio.  Both 64-bit and 32-bit versions of libmp3lame.dll are provided, with platform detection to determine which to use.</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -37,7 +37,7 @@
     <PackageReference Include="ModuleInit.Fody" Version="2.1.1">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="NAudio.Core" Version="2.0.0" />
+    <PackageReference Include="NAudio.Core" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>NAudio.Lame</id>
-    <version>2.0.1</version>
+    <version>2.1.0</version>
     <authors>Corey Murtagh</authors>
     <owners>Corey Murtagh</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -10,7 +10,9 @@
     <projectUrl>https://github.com/Corey-M/NAudio.Lame</projectUrl>
     <description>Uses libmp3lame.dll from the Lame project to provide MP3 encoding support to NAudio 2.0.  Both 64-bit and 32-bit versions of libmp3lame.dll are provided, with platform detection to determine which to use.</description>
     <summary>Implements MP3 writing for NAudio using libmp3lame.</summary>
-    <releaseNotes>v2.0.1 Fix exception when NAudio.Lame loaded as memory assembly.
+    <releaseNotes>v2.1.0 Improve ID3v2 handling of unicode strings, updated to NAudio v2.1.
+
+v2.0.1 Fix exception when NAudio.Lame loaded as memory assembly.
 
 v2.0.0 Binding to NAudio 2.0.0, version alignment with NAudio. No feature updates.
 
@@ -32,7 +34,7 @@ v1.1.0 Changed all projects to .NET STandard 2.0, rebuilt testing using .NET Cor
     <tags>C# NAudio MP3 Lame Windows</tags>
     <repository type="git" url="https://github.com/Corey-M/NAudio.Lame" />
     <dependencies>
-      <dependency id="NAudio.Core" version="2.0.0" />
+      <dependency id="NAudio.Core" version="2.1.0" />
     </dependencies>
   </metadata>
   <files>
