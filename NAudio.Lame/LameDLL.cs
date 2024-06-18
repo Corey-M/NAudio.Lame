@@ -54,8 +54,8 @@ namespace NAudio.Lame
 
 		internal static class Native
 		{
-			[DllImport("kernel32", SetLastError = true, CharSet = CharSet.Ansi)]
-			static extern IntPtr LoadLibrary([MarshalAs(UnmanagedType.LPStr)] string lpFilename);
+			[DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
+			static extern IntPtr LoadLibraryW([MarshalAs(UnmanagedType.LPWStr)] string lpFilename);
 
 			private static IntPtr _hLameDll = IntPtr.Zero;
 
@@ -63,7 +63,7 @@ namespace NAudio.Lame
 			{
 				if (file == null || !file.Exists)
 					return false;
-				var handle = LoadLibrary(file.FullName);
+				var handle = LoadLibraryW(file.FullName);
 				if (handle == IntPtr.Zero)
 					return false;
 				_hLameDll = handle;
